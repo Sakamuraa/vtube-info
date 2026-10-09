@@ -116,7 +116,7 @@ export const creators: Creator[] = [
      */
     format: "ID/EN VTuber · Stream & cover",
     blurb:
-      "Yang JRP-nya jadi Furnitur. Live Fire Emblem, cover anime, dan kolektif yang tidak pernah kosong.",
+      "Hewwo! Virtual Corporate Slav- Secretary who love playing JRPG is here! Nice to meet you! :3",
     href: "https://sierramooniva.vtube-info.xyz",
     avatar: "https://sierramooniva.vtube-info.xyz/og-image.png",
     channels: [
