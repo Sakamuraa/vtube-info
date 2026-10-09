@@ -131,6 +131,55 @@ export const creators: Creator[] = [
     ],
     tags: ["#SierraMooniva", "#SierraonAir", "#MoonivArt", "#Sierramoonclips"],
   },
+  {
+    slug: "deidey",
+    name: "Deidey",
+    role: "Isekai rabbit warrior",
+    /*
+     * "Live 2D" is sourced, unlike Sierra's row above.
+     *
+     * Her own X bio credits the illustrator as "Illustrator Live 2D", which only
+     * makes sense against a Live 2D rig. That is her saying so, not the
+     * neighbouring rows being copied across.
+     */
+    format: "ID/EN VTuber · Live 2D",
+    blurb:
+      "Isekai Rabbit Warrior. Elite warrior from Praedisium, siap merusak. Punya rutinitas tetap: PvZ2, karaoke, drawings, dan cerita serial.",
+    href: "https://deidey.vtube-info.xyz",
+    avatar: "https://deidey.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@Deidey" },
+      { label: "X", href: "https://x.com/deidey16_" },
+      { label: "Shopee", href: "https://shopee.co.id/deideyisekaistore" },
+    ],
+    tags: ["#Deyillust", "#Deyonair", "#Clipdey", "#Deylist"],
+  },
+  {
+    slug: "kanata-reina",
+    name: "Kanata Reina",
+    role: "Love witch",
+    /*
+     * "Live 2D" here, and "ID/EN" alongside it.
+     *
+     * Her channel description opens "Virtual Youtuber Indonesia" and her own site
+     * lists her languages as Indonesian and English, and the rig is what her site
+     * states in its own facts grid -- so this row matches what she publishes about
+     * herself rather than what a single tab happens to show. It also brings her
+     * in line with the rows above, which is what a reader scanning the column
+     * expects.
+     */
+    format: "ID/EN VTuber · Live 2D",
+    blurb:
+      "Virtual Youtuber Indonesia yang menandai dirinya dengan sebutan love witch. Sesi pendek dengan pajamas night dan ASMR oncam, lalu cover yang hampir selalu berbahasa Inggris.",
+    href: "https://kanatareina.vtube-info.xyz",
+    avatar: "https://kanatareina.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@KanataReinaCh" },
+      { label: "X", href: "https://x.com/Kanata_Reina" },
+      { label: "TikTok", href: "https://www.tiktok.com/@kanatareina" },
+    ],
+    tags: ["#kanatareina", "#ReinaGambar", "#ReinaGaming", "#ReinaKaraoke"],
+  },
 ];
 
 /**
