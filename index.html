@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f2b880" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1009" media="(prefers-color-scheme: dark)" />
+
+    <title>VTube Info - Direktori VTuber Indonesia</title>
+    <meta
+      name="description"
+      content="Direktori independen VTuber Indonesia: Pingu Stardine dan Mizu Hamzazu, lengkap dengan situs, kanal, dan fan art masing-masing."
+    />
+    <link rel="canonical" href="https://vtube-info.xyz/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="VTube Info" />
+    <meta property="og:locale" content="id_ID" />
+    <meta property="og:title" content="VTube Info - Direktori VTuber Indonesia" />
+    <meta
+      property="og:description"
+      content="Satu pintu masuk ke situs, kanal, dan fan art Pingu Stardine dan Mizu Hamzazu."
+    />
+    <meta property="og:url" content="https://vtube-info.xyz/" />
+    <meta property="og:image" content="https://vtube-info.xyz/og-image.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:type" content="image/png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="VTube Info - Direktori VTuber Indonesia" />
+    <meta
+      name="twitter:description"
+      content="Satu pintu masuk ke situs, kanal, dan fan art Pingu Stardine dan Mizu Hamzazu."
+    />
+    <meta name="twitter:image" content="https://vtube-info.xyz/og-image.png" />
+
+    <!-- PNG, not the JPEG: the favicon sits on a near-black ground and JPEG
+         ringing shows as a light halo at 16px. iOS ignores WebP too. -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!--
+      Runs before first paint so a dark-mode visitor never eats a light flash.
+      The key must match STORAGE_KEY in src/useTheme.ts, or the choice is written
+      under one name and read under another and the toggle dies silently.
+    -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("vtube-theme");
+          var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme =
+            stored || (prefersDark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+@import "tailwindcss";
+
+@import "@fontsource-variable/cormorant-garamond";
+@import "@fontsource-variable/outfit";
+
+/*
+ * Palette
+ * -------
+ * Three colours and the neutrals they sit on. The brief named them, so they are
+ * used as given rather than adjusted toward something more "designed": peach as
+ * the base, terracotta as the shadow it casts, butter yellow as the one accent.
+ *
+ * The neutrals are peach-tinted rather than grey. A grey under a peach page
+ * reads as dirt, and it is what makes a warm palette look washed out.
+ *
+ * Both modes ship. The dark set is not the light set with the brightness pulled
+ * down: on a dark page the peach becomes the ground and the butter becomes the
+ * text accent, because a base colour that reads as a surface in light is a
+ * surface you cannot put text on.
+ */
+@theme {
+  --color-peach: #f2b880;
+  --color-terracotta: #c48459;
+  --color-butter: #fff2ac;
+
+  --color-ink: #2b1a12;
+  --color-ink-soft: #5c4034;
+  --color-parchment: #fdf6ef;
+  --color-parchment-deep: #f6e9dc;
+
+  --color-night: #1a1009;
+  --color-night-soft: #2a1a11;
+  --color-night-line: #3d2718;
+  --color-dawn: #f7c99a;
+  --color-dawn-bright: #ffe6b8;
+
+  --font-display: "Cormorant Garamond Variable", Georgia, serif;
+  --font-sans: "Outfit Variable", system-ui, sans-serif;
+
+  /*
+   * One radius scale. The brief is a portal with a soft, rounded character, so
+   * everything is soft rather than mixing pills and sharp corners in one layout.
+   */
+  --radius-card: 1.5rem;
+  --radius-tile: 2rem;
+}
+
+@layer base {
+  :root {
+    --surface: var(--color-parchment);
+    --surface-deep: var(--color-parchment-deep);
+    --text: var(--color-ink);
+    --text-muted: var(--color-ink-soft);
+    --line: color-mix(in oklab, var(--color-terracotta) 32%, transparent);
+    --accent: var(--color-terracotta);
+    --glow: var(--color-butter);
+
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    --surface: var(--color-night);
+    --surface-deep: var(--color-night-soft);
+    --text: var(--color-dawn);
+    --text-muted: var(--color-peach);
+    --line: var(--color-night-line);
+    --accent: var(--color-peach);
+    --glow: var(--color-butter);
+
+    color-scheme: dark;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--text);
+    font-family: var(--font-sans);
+    /* Optical sizing on the display face: the hero sets a very large size and
+       the low-contrast cut of a Garamond stops holding together up there. */
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Display type gets tighter tracking and a leading that does not clip the
+     descenders of the italic accent word. 1.02 with no reserve clips the y, j
+     and p in "Pingu"; the reserve is what stops it. */
+  .font-display {
+    letter-spacing: -0.015em;
+    line-height: 1.02;
+  }
+
+  ::selection {
+    background-color: var(--color-butter);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+/*
+ * Motion
+ * ------
+ * Every animation on this page collapses to a static layout under reduced
+ * motion. That includes the WebGL scene: it renders one settled frame and stops
+ * the render loop entirely, so a visitor who asked for less motion gets less
+ * work, not just less movement.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* The WebGL canvas is decorative and sits behind the content. It must not be a
+   tab stop, must not swallow clicks, and must not be read by a screen reader. */
+.canvas-host {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  contain: strict;
+}
+
+.canvas-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
