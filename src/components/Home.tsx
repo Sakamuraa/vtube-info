@@ -25,9 +25,22 @@ import { ArrowRight } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
 import { creatorCount, creators, site } from "../content";
+import { useLive, type LiveEntry } from "../useLive";
 
 export function Home() {
   const count = creatorCount();
+  const { live, settled } = useLive();
+
+  /*
+   * The band only exists when somebody is actually broadcasting.
+   *
+   * An "On Live" heading over an empty state is a promise the page cannot keep
+   * most of the time -- five channels are rarely all offline at once, so the
+   * honest default is to render nothing at all. `settled` keeps it hidden while
+   * the answer is still unknown, so the section never flashes in and then out on
+   * load.
+   */
+  const showLive = settled && live.length > 0;
 
   return (
     <>
@@ -83,6 +96,8 @@ export function Home() {
           </div>
         </div>
       </section>
+
+      {showLive && <OnLive entries={live} />}
 
       {/*
         The creators. Numbered rows with rules, but carrying each creator's own
@@ -172,5 +187,99 @@ export function Home() {
         </div>
       </section>
     </>
+  );
+}
+
+/**
+ * The live band.
+ *
+ * Sits between the masthead and the index, above "Kreator", because it is the one
+ * thing on this page that is about right now rather than about a directory.
+ *
+ * Laid out as a ruled row rather than a card, on purpose: the masthead above and
+ * the index below are both ruled and full-bleed, and a single floating card in
+ * between them would be the exact layout family this page was built to avoid.
+ *
+ * The dot pulses because "live" is the one claim on the site that decays on its
+ * own. It is `aria-hidden`, with the word "Live" carrying the same information to
+ * a screen reader -- the animation is for people who can see it.
+ */
+function OnLive({ entries }: { entries: LiveEntry[] }) {
+  return (
+    <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-8" data-reveal>
+      <div className="flex flex-wrap items-baseline justify-between gap-4">
+        <h2 className="flex items-center gap-3 font-display text-3xl font-semibold sm:text-4xl">
+          <span className="relative flex size-3" aria-hidden="true">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--accent)] opacity-70" />
+            <span className="relative inline-flex size-3 rounded-full bg-[var(--accent)]" />
+          </span>
+          On Live
+        </h2>
+        <p className="text-sm text-[var(--text-muted)]">
+          {entries.length === 1 ? "1 sedang streaming" : `${entries.length} sedang streaming`}
+        </p>
+      </div>
+
+      {/*
+        `data-stagger` is read by src/motion.ts and animates the rows on scroll,
+        the same way the index below does. Reusing it rather than a new hook keeps
+        the live band and the index feeling like one page.
+      */}
+      <ul className="mt-8 border-t border-[var(--line)]" data-stagger>
+        {entries.map((entry) => (
+          <li key={entry.slug}>
+            <a
+              href={entry.streamUrl || entry.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group grid grid-cols-[3.5rem_1fr] items-center gap-x-5 gap-y-3 border-b border-[var(--line)] py-6 transition-colors hover:bg-[color-mix(in_oklab,var(--surface-deep)_45%,transparent)] md:grid-cols-[4.5rem_1fr_auto] md:gap-x-8"
+            >
+              <img
+                src={entry.avatar}
+                alt=""
+                className="size-[3.5rem] rounded-pill border border-[var(--line)] object-cover md:size-[4.5rem]"
+                loading="lazy"
+                width={72}
+                height={72}
+              />
+
+              <span className="min-w-0">
+                <span className="block font-display text-xl font-semibold leading-tight sm:text-2xl">
+                  {entry.name}
+                </span>
+                {/*
+                  The stream title is the creator's own words and can be long, so
+                  it truncates rather than wrapping into a three-line row that
+                  would break the rhythm of the list.
+                */}
+                <span className="mt-1 block truncate text-sm text-[var(--text-muted)]">
+                  {entry.title}
+                </span>
+              </span>
+
+              <span className="col-start-2 inline-flex items-center gap-3 text-sm md:col-start-3 md:justify-self-end">
+                {/*
+                  Null viewers prints nothing rather than "0": the instance not
+                  reporting a count is not the same as a stream nobody is watching.
+                */}
+                {entry.viewers !== null && (
+                  <span className="font-mono tabular-nums text-[var(--text-muted)]">
+                    {entry.viewers.toLocaleString("id-ID")} menonton
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-2 font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">
+                  Tonton
+                  <ArrowRight
+                    size={16}
+                    aria-hidden="true"
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
