@@ -3,7 +3,7 @@
  *
  * Same information as the home index, deliberately not the same layout: home is
  * ruled rows, this is a two-column grid with the avatar and the real channel
- * links. A page that lists the same two creators twice has to earn the second
+ * links. A page that lists the same creators twice has to earn the second
  * view, and repeating the first layout would look like a duplicate rather than a
  * fuller one.
  *

@@ -100,6 +100,37 @@ export const creators: Creator[] = [
     ],
     tags: ["#PingGambar", "#PingSUS", "#Pingfo"],
   },
+  {
+    slug: "sierra-mooniva",
+    name: "Sierra Mooniva",
+    role: "Virtual corporate secretary",
+    /*
+     * No "Live 2D" here, unlike the two rows above.
+     *
+     * That format is a claim about a rig, and it is only made where the creator
+     * states it. Sierra's channel description and X bio say nothing about how she
+     * is animated, so the line carries only what her own tabs show: Indonesian
+     * stream titles against an English bio, and an upload history that is half
+     * streams and half covers. Guessing "Live 2D" because the neighbours have it
+     * is how a row ends up asserting something nobody checked.
+     */
+    format: "ID/EN VTuber · Stream & cover",
+    blurb:
+      "Yang JRP-nya jadi Furnitur. Live Fire Emblem, cover anime, dan kolektif yang tidak pernah kosong.",
+    href: "https://sierramooniva.vtube-info.xyz",
+    avatar: "https://sierramooniva.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@SierraMooniva" },
+      { label: "X", href: "https://x.com/SierraMooniva" },
+      /*
+       * Her own site, not Trakteer. The other two have a Trakteer; hers is the
+       * framer.website link from her X bio, and a Trakteer row would be a guess
+       * that renders as a dead link if it is wrong.
+       */
+      { label: "Website", href: "https://sierramooniva.framer.website" },
+    ],
+    tags: ["#SierraMooniva", "#SierraonAir", "#MoonivArt", "#Sierramoonclips"],
+  },
 ];
 
 /**
