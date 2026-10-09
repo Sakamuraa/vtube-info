@@ -24,7 +24,7 @@
 import { ArrowRight } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
-import { creatorCount, creators, site } from "../content";
+import { creatorCount, creators, site, type Creator } from "../content";
 import { useLive, type LiveEntry } from "../useLive";
 
 export function Home() {
@@ -41,6 +41,23 @@ export function Home() {
    * load.
    */
   const showLive = settled && live.length > 0;
+
+  /*
+   * Join the live answer back onto the creators array.
+   *
+   * /api/live cannot import from src/ -- Vercel transpiles a function in place,
+   * so a relative import out of api/ does not reach the deployed output. It sends
+   * slugs instead, and the name, avatar and site link are read from here, where
+   * they already live. A slug with no matching creator drops out rather than
+   * rendering a row with a blank name.
+   */
+  const liveRows = live.flatMap((entry) => {
+    const creator = creators.find((c) => c.slug === entry.slug);
+    if (!creator) return [];
+    return [{ entry, creator }];
+  });
+
+  const showBand = showLive && liveRows.length > 0;
 
   return (
     <>
@@ -97,7 +114,7 @@ export function Home() {
         </div>
       </section>
 
-      {showLive && <OnLive entries={live} />}
+      {showBand && <OnLive rows={liveRows} />}
 
       {/*
         The creators. Numbered rows with rules, but carrying each creator's own
@@ -204,7 +221,7 @@ export function Home() {
  * own. It is `aria-hidden`, with the word "Live" carrying the same information to
  * a screen reader -- the animation is for people who can see it.
  */
-function OnLive({ entries }: { entries: LiveEntry[] }) {
+function OnLive({ rows }: { rows: { entry: LiveEntry; creator: Creator }[] }) {
   return (
     <section className="mx-auto max-w-6xl px-5 pt-16 sm:px-8" data-reveal>
       <div className="flex flex-wrap items-baseline justify-between gap-4">
@@ -216,7 +233,7 @@ function OnLive({ entries }: { entries: LiveEntry[] }) {
           On Live
         </h2>
         <p className="text-sm text-[var(--text-muted)]">
-          {entries.length === 1 ? "1 sedang streaming" : `${entries.length} sedang streaming`}
+          {rows.length === 1 ? "1 sedang streaming" : `${rows.length} sedang streaming`}
         </p>
       </div>
 
@@ -226,16 +243,16 @@ function OnLive({ entries }: { entries: LiveEntry[] }) {
         the live band and the index feeling like one page.
       */}
       <ul className="mt-8 border-t border-[var(--line)]" data-stagger>
-        {entries.map((entry) => (
+        {rows.map(({ entry, creator }) => (
           <li key={entry.slug}>
             <a
-              href={entry.streamUrl || entry.href}
+              href={entry.streamUrl || creator.href}
               target="_blank"
               rel="noopener noreferrer"
               className="group grid grid-cols-[3.5rem_1fr] items-center gap-x-5 gap-y-3 border-b border-[var(--line)] py-6 transition-colors hover:bg-[color-mix(in_oklab,var(--surface-deep)_45%,transparent)] md:grid-cols-[4.5rem_1fr_auto] md:gap-x-8"
             >
               <img
-                src={entry.avatar}
+                src={creator.avatar}
                 alt=""
                 className="size-[3.5rem] rounded-pill border border-[var(--line)] object-cover md:size-[4.5rem]"
                 loading="lazy"
@@ -245,7 +262,7 @@ function OnLive({ entries }: { entries: LiveEntry[] }) {
 
               <span className="min-w-0">
                 <span className="block font-display text-xl font-semibold leading-tight sm:text-2xl">
-                  {entry.name}
+                  {creator.name}
                 </span>
                 {/*
                   The stream title is the creator's own words and can be long, so

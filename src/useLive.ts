@@ -19,13 +19,13 @@
 import { useEffect, useState } from "react";
 
 export type LiveEntry = {
+  /** Join key. Matches Creator.slug in content.ts. */
   slug: string;
-  name: string;
-  avatar: string;
-  href: string;
   title: string;
   viewers: number | null;
   streamUrl: string;
+  /** Their own site, used when the stream link is missing. */
+  site: string;
 };
 
 type Payload = {

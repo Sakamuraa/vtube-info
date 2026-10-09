@@ -7,31 +7,37 @@
  * ----------------------------------------------------------
  * Each creator's own site already answers `/api/content` with a live flag per
  * stream, and that detection is the part worth not rewriting: it reads the
- * thumbnail badge and the viewer row off the channel grid, which is where
- * YouTube actually says it. So this route reuses those endpoints instead of
- * scraping five channels a second time.
+ * thumbnail badge and the viewer row off the channel grid, which is where YouTube
+ * actually says it. So this route reuses those endpoints instead of scraping five
+ * channels a second time.
  *
- * The browser cannot call them directly. They sit on sibling subdomains and
- * answer without an `Access-Control-Allow-Origin` header, which is correct for
- * their own pages and a wall for a cross-origin fetch. Adding CORS to five
- * separate sites to serve one page here is the wrong trade; one function on this
- * side of the wall is the same work in one place.
+ * The browser cannot call them directly. They sit on sibling subdomains and answer
+ * without an `Access-Control-Allow-Origin` header, which is correct for their own
+ * pages and a wall for a cross-origin fetch. Adding CORS to five separate sites to
+ * serve one page here is the wrong trade; one function on this side of the wall is
+ * the same work in one place.
+ *
+ * Why nothing is imported from src/
+ * ----------------------------------
+ * A first version imported `creators` from `src/content.ts`, and it deployed as a
+ * 500. Vercel transpiles a function in place rather than bundling it, so a
+ * relative import out of `api/` does not survive into the deployed output. Every
+ * sibling route here imports nothing for the same reason, and this one now matches
+ * them.
+ *
+ * So the origins are listed below instead. That is deployment configuration --
+ * where each fan site is served from -- rather than content, and the page joins
+ * these back to `src/content.ts` by slug for the name, avatar and site link, which
+ * means a slug that stops matching simply drops out instead of rendering a row
+ * with a blank name.
  *
  * Honesty about failure
  * ---------------------
  * An endpoint that times out is reported as unreachable rather than as offline.
  * The response says how many creators were actually reached, and the page renders
- * nothing unless at least one answered -- "we could not tell" must not be drawn
- * as "nobody is streaming", which is a different and wrong statement.
- *
- * Cache
- * -----
- * Short while someone is live, since that is a claim about right now, and longer
- * when the answer is a room with nobody in it. A stale "live" badge is the one
- * answer here that actively misleads.
+ * nothing unless at least one answered -- "we could not tell" must not be drawn as
+ * "nobody is streaming", which is a different and wrong statement.
  */
-
-import { creators } from "../src/content.ts";
 
 interface LiveRequest {
   method?: string;
@@ -43,19 +49,17 @@ interface LiveResponse {
   json(body: unknown): void;
 }
 
-/** One running broadcast, flattened to what a row on the home page needs. */
+/** One running broadcast, keyed so the page can join it to a creator. */
 export interface LiveEntry {
+  /** Matches `Creator.slug` in src/content.ts. */
   slug: string;
-  name: string;
-  /** Their og:image, the same picture the index row uses. */
-  avatar: string;
-  /** Their own site, where the full broadcast lives. */
-  href: string;
   title: string;
   /** Null rather than 0 when the instance did not report one. */
   viewers: number | null;
-  /** Direct watch link, so the row can skip the detour through the fan site. */
+  /** Direct watch link, so a row can skip the detour through the fan site. */
   streamUrl: string;
+  /** Their own site, used as the row's fallback link. */
+  site: string;
 }
 
 /** The shape this route depends on, and only that. */
@@ -69,6 +73,22 @@ type StreamEntry = {
 type ContentPayload = {
   streams?: StreamEntry[];
 };
+
+/**
+ * Where each fan site lives.
+ *
+ * Kept as an explicit list rather than derived, because a function cannot import
+ * from src/ here. The slug is the join key the page uses, so a creator added to
+ * src/content.ts without a line here is simply not polled -- it renders as a normal
+ * index row and nothing else.
+ */
+const ORIGINS: { slug: string; origin: string }[] = [
+  { slug: "mizu-hamzazu", origin: "https://mizuhamzazu.vtube-info.xyz" },
+  { slug: "pingu-stardine", origin: "https://pingu.vtube-info.xyz" },
+  { slug: "sierra-mooniva", origin: "https://sierramooniva.vtube-info.xyz" },
+  { slug: "deidey", origin: "https://deidey.vtube-info.xyz" },
+  { slug: "kanata-reina", origin: "https://kanatareina.vtube-info.xyz" },
+];
 
 /**
  * Generous, because these endpoints are edge-cached and normally answer in a few
@@ -85,10 +105,10 @@ const ACCEPT = { accept: "application/json" };
  * this returns a union rather than a nullable entry.
  */
 async function check(
-  creator: (typeof creators)[number],
+  target: (typeof ORIGINS)[number],
 ): Promise<LiveEntry | null | "unreachable"> {
   try {
-    const res = await fetch(`${creator.href}/api/content`, {
+    const res = await fetch(`${target.origin}/api/content`, {
       headers: ACCEPT,
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
@@ -99,13 +119,11 @@ async function check(
     if (!live) return null;
 
     return {
-      slug: creator.slug,
-      name: creator.name,
-      avatar: creator.avatar,
-      href: creator.href,
+      slug: target.slug,
       title: live.title ?? "",
       viewers: typeof live.viewers === "number" ? live.viewers : null,
       streamUrl: live.url ?? "",
+      site: target.origin,
     };
   } catch {
     // Timeout, DNS, malformed JSON, offline fan site. All the same to a visitor.
@@ -116,7 +134,7 @@ async function check(
 export default async function handler(_req: LiveRequest, res: LiveResponse) {
   // Parallel rather than sequential: five sequential timeouts would be five times
   // the slowest one, and this runs on every visitor's page load.
-  const results = await Promise.all(creators.map(check));
+  const results = await Promise.all(ORIGINS.map(check));
 
   const live: LiveEntry[] = [];
   let reachable = 0;
@@ -142,6 +160,6 @@ export default async function handler(_req: LiveRequest, res: LiveResponse) {
     checkedAt: new Date().toISOString(),
     live,
     reachable,
-    total: creators.length,
+    total: ORIGINS.length,
   });
 }
