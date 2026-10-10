@@ -27,8 +27,27 @@ import { Link } from "react-router-dom";
 import { creatorCount, creators, site, type Creator } from "../content";
 import { useLive, type LiveEntry } from "../useLive";
 
+/**
+ * How many creators the front page shows.
+ *
+ * A preview, not the index. Every row here is a whole site, and six of them
+ * turned the landing page into a second copy of /kreator -- same rows, same
+ * rules, same numbers, so a visitor had no reason to go and look at either. Two
+ * is enough to say what this place is, and the button under them says where the
+ * rest are.
+ *
+ * Taken off the front of the array rather than as a list of slugs, so the pairing
+ * follows the order the creators are already declared in and adding a seventh
+ * does not silently need this file edited too. These two are Mizu and Pingu.
+ *
+ * /konten, the live band and the count in the corner are all unaffected: they
+ * read the whole array.
+ */
+const FEATURED = 2;
+
 export function Home() {
   const count = creatorCount();
+  const featured = creators.slice(0, FEATURED);
   const { live, settled } = useLive();
 
   /*
@@ -117,14 +136,19 @@ export function Home() {
       {showBand && <OnLive rows={liveRows} />}
 
       {/*
-        The creators. Numbered rows with rules, but carrying each creator's own
-        og:image -- the same picture their social card uses, so the two cannot
-        drift apart.
+        The creators, as a preview of the index rather than the index itself.
+
+        Numbered rows with rules, but carrying each creator's own og:image -- the
+        same picture their social card uses, so the two cannot drift apart.
 
         Deliberately not headed "Index": that word turns a page of people into a
         table of contents, and a TOC is exactly the feeling to avoid next to two
         sites that are about characters rather than listings. The count sits in
         the corner instead, which says the same thing without naming the format.
+
+        The count reads "2 dari 6 channel" rather than "6 channel", because the
+        second half of that list is one click away and saying six here while two
+        are on the page would be the page disagreeing with itself.
       */}
       <section className="mx-auto max-w-6xl px-5 pb-24 pt-20 sm:px-8" data-reveal>
         <div className="flex flex-wrap items-baseline justify-between gap-4">
@@ -132,12 +156,12 @@ export function Home() {
             Kreator
           </h2>
           <p className="text-sm text-[var(--text-muted)]">
-            {count.digits} channel, {count.total} situs
+            {featured.length} dari {count.total} channel
           </p>
         </div>
 
         <ul className="mt-10 border-t border-[var(--line)]">
-          {creators.map((creator, i) => (
+          {featured.map((creator, i) => (
             <li key={creator.slug} data-index-row>
               <a
                 href={creator.href}
@@ -188,6 +212,34 @@ export function Home() {
             </li>
           ))}
         </ul>
+
+        {/*
+          The way to the other four. A link, not a button that opens something:
+          /kreator is a page of this site, and the pointer is what says so.
+
+          Only rendered while something is actually being held back, so that
+          raising FEATURED to cover the whole list removes this block instead of
+          leaving a button pointing at a page that is already on screen.
+        */}
+        {featured.length < count.total && (
+          <div className="mt-12 flex justify-center">
+            <Link
+              to="/kreator"
+              className="group inline-flex items-center gap-2 rounded-pill bg-[var(--accent)] px-7 py-3 text-sm font-semibold text-[var(--surface)] transition-transform hover:opacity-90 active:translate-y-px"
+            >
+              Lihat semua kreator
+              <ArrowRight
+                size={16}
+                weight="bold"
+                aria-hidden="true"
+                className="transition-transform group-hover:translate-x-1"
+              />
+              <span className="sr-only">
+                {" "}({count.total} channel)
+              </span>
+            </Link>
+          </div>
+        )}
       </section>
 
       {/* Closing band. Centred, and the only centred section on the page, which is
@@ -199,7 +251,7 @@ export function Home() {
           </p>
           <p className="mt-6 text-sm leading-relaxed text-[var(--text-muted)]">
             Semua karya di halaman-halaman itu milik kreatornya, dan tautan resmi
-            mereka ada di tiap baris index.
+            mereka ada di halaman kreator.
           </p>
         </div>
       </section>

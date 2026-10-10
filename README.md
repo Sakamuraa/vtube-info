@@ -11,8 +11,8 @@ Three routes, served as a static SPA:
 
 | Route      | Page                                                      |
 | ---------- | --------------------------------------------------------- |
-| `/`        | Masthead, and the creator list as ruled rows               |
-| `/kreator` | The same creators, as cards with avatars and channel links |
+| `/`        | Masthead, live band, and two creators as ruled rows        |
+| `/kreator` | All the creators, as cards with avatars and channel links |
 | `/tentang` | Who built it, and what it is built with                    |
 
 ## Stack
@@ -46,6 +46,12 @@ Everything about them lives in `src/content.ts`. One entry is the whole job:
 Every count in the copy is derived from the array length through
 `creatorCount()`, so the sentences in `/kreator` and on the home page update
 themselves. Nothing in the markup hardcodes a number.
+
+The home page shows `FEATURED` (2) of them rather than all of them — every row
+is a whole site, and six of them turned the front page into a second copy of
+`/kreator`. The count reads "2 dari 6 channel" so the page does not claim six
+while showing two, and the button underneath only renders while something is
+actually being held back. The live band still covers all six.
 
 ## Motion
 
