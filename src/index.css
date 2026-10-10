@@ -143,3 +143,65 @@
   width: 100%;
   height: 100%;
 }
+
+/*
+ * The live viewer count rolling over.
+ *
+ * Keyframes rather than a transition because an element that mounts already
+ * carrying its end state has nothing to transition from -- the outgoing number
+ * would sit at its final offset from the first frame and simply vanish. An
+ * animation runs from its first keyframe on mount, which is exactly the behaviour
+ * a swap needs.
+ *
+ * The travel is 1.6em, and the units matter. A percentage translate is measured
+ * against the element's own height, and this element is one line tall, so even
+ * 110% of it came out at about fifteen pixels -- measured on screen, and it read as
+ * nothing at all. A line and a half in em moves far enough that the direction is
+ * legible at a glance.
+ *
+ * `forwards` holds the end state, so the settled number does not snap back to its
+ * un-animated position when the animation finishes.
+ */
+@keyframes live-number-in-up {
+  from {
+    transform: translateY(1.6em);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes live-number-in-down {
+  from {
+    transform: translateY(-1.6em);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes live-number-out-up {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-1.6em);
+    opacity: 0;
+  }
+}
+
+@keyframes live-number-out-down {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(1.6em);
+    opacity: 0;
+  }
+}

@@ -25,6 +25,7 @@ import { ArrowRight } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
 
 import { creatorCount, creators, site, type Creator } from "../content";
+import { LiveNumber } from "../LiveNumber";
 import { useLive, type LiveEntry } from "../useLive";
 
 /**
@@ -329,11 +330,18 @@ function OnLive({ rows }: { rows: { entry: LiveEntry; creator: Creator }[] }) {
               <span className="col-start-2 inline-flex items-center gap-3 text-sm md:col-start-3 md:justify-self-end">
                 {/*
                   Null viewers prints nothing rather than "0": the instance not
-                  reporting a count is not the same as a stream nobody is watching.
+                  reporting a count is not the same as a stream nobody is
+                  watching. The value itself rolls when it changes -- the route
+                  polls every ten seconds while this band is up, so the number on
+                  screen is moving on its own and a static one would look frozen.
                 */}
                 {entry.viewers !== null && (
-                  <span className="font-mono tabular-nums text-[var(--text-muted)]">
-                    {entry.viewers.toLocaleString("id-ID")} menonton
+                  <span
+                    className="inline-flex items-baseline font-mono tabular-nums text-[var(--text-muted)]"
+                    data-live-viewers
+                  >
+                    <LiveNumber value={entry.viewers} />
+                    <span className="ml-1.5">menonton</span>
                   </span>
                 )}
                 <span className="inline-flex items-center gap-2 font-medium text-[var(--text-muted)] transition-colors group-hover:text-[var(--accent)]">

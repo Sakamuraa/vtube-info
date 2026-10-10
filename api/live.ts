@@ -64,11 +64,13 @@ export interface LiveEntry {
 
 /** The shape this route depends on, and only that. */
 type StreamEntry = {
-  live?: boolean;
-  title?: string;
-  url?: string;
-  viewers?: number | null;
-};
+    live?: boolean;
+    title?: string;
+    url?: string;
+    /** Needed to confirm a fresh viewer count belongs to this broadcast. */
+    videoId?: string;
+    viewers?: number | null;
+  };
 
 type ContentPayload = {
   streams?: StreamEntry[];
@@ -100,29 +102,78 @@ const TIMEOUT_MS = 5000;
 
 const ACCEPT = { accept: "application/json" };
 
+/** The shape of each fan site's /api/viewers, which carries one number. */
+type ViewersPayload = {
+  live?: boolean;
+  videoId?: string | null;
+  viewers?: number | null;
+};
+
 /**
  * One creator: their live entry, null if they are simply offline, or the string
  * "unreachable" if their endpoint did not answer. The third state is the reason
  * this returns a union rather than a nullable entry.
+ *
+ * Two endpoints, in parallel, from the same site.
+ *
+ * /api/content is authoritative for whether a broadcast is running and what it is
+ * called. It is also the expensive one -- three YouTube tabs and a whole archive --
+ * so it is cached for tens of seconds at the fan site, which is correct for an
+ * archive and wrong for a viewer count.
+ *
+ * /api/viewers carries one integer and costs one fetch. Reading the count from
+ * there rather than from the archive payload is what lets the number move every
+ * ten seconds without that costing three times as much per refresh.
+ *
+ * They run together rather than in sequence because they are independent, and the
+ * second is only a refinement: if it fails or is slow the answer is still correct,
+ * just with the count from the archive until the next pass.
  */
 async function check(
   target: (typeof ORIGINS)[number],
 ): Promise<LiveEntry | null | "unreachable"> {
   try {
-    const res = await fetch(`${target.origin}/api/content`, {
-      headers: ACCEPT,
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!res.ok) return "unreachable";
+    const [contentRes, viewersRes] = await Promise.all([
+      fetch(`${target.origin}/api/content`, {
+        headers: ACCEPT,
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      }),
+      fetch(`${target.origin}/api/viewers`, {
+        headers: ACCEPT,
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      }),
+    ]);
+    if (!contentRes.ok) return "unreachable";
 
-    const payload = (await res.json()) as ContentPayload;
+    const payload = (await contentRes.json()) as ContentPayload;
     const live = (payload.streams ?? []).find((stream) => stream.live);
     if (!live) return null;
+
+    /*
+     * Only trust the fresh count when it is about this broadcast.
+     *
+     * /api/viewers answers for whatever is running at that site right now. If a
+     * stream ended between the two requests, its number belongs to a broadcast
+     * that is no longer the one this row is describing -- and a viewer count under
+     * the wrong title is worse than one ten seconds out of date. So the ids have to
+     * agree before the number is taken.
+     */
+    let viewers = typeof live.viewers === "number" ? live.viewers : null;
+    try {
+      if (viewersRes.ok) {
+        const fresh = (await viewersRes.json()) as ViewersPayload;
+        if (fresh.live && fresh.videoId && fresh.videoId === live.videoId) {
+          if (typeof fresh.viewers === "number") viewers = fresh.viewers;
+        }
+      }
+    } catch {
+      // The refinement failed; the archive's own count stands.
+    }
 
     return {
       slug: target.slug,
       title: live.title ?? "",
-      viewers: typeof live.viewers === "number" ? live.viewers : null,
+      viewers,
       streamUrl: live.url ?? "",
       site: target.origin,
     };
@@ -147,38 +198,37 @@ export default async function handler(_req: LiveRequest, res: LiveResponse) {
     if (result) live.push(result);
   }
 
-    res.setHeader(
-      "Cache-Control",
-      /*
-       * One window for every answer, and it is the short one.
-       *
-       * This used to be the other way round: 20 seconds when somebody was live,
-       * 120 when nobody was, on the reasoning that an empty room is a dull answer
-       * worth holding on to. That reasoning has it exactly backwards.
-       *
-       * A stream STARTING is the event this band exists for, and it is the one
-       * the long window hid. If Pingu was already live and Sierra started a
-       * minute later, the edge was still holding the older answer -- Pingu alone
-       * -- for up to two minutes, and stale-while-revalidate could hand back
-       * that same stale copy once more while it revalidated behind it. Which is
-       * the report this started from: Sierra live on her own site, one row on
-       * this one.
-       *
-       * The expensive direction is the one that was already short. A cold call
-       * fans out to six /api/content endpoints, but each is edge-cached at its
-       * own site and answers in about 10ms, so a miss measures ~440ms end to
-       * end against ~140ms for a hit. Paying that at most once every 20 seconds
-       * is a fair price for not hiding somebody who just went live.
-       *
-       * A stream ENDING now lands on the same schedule, which is the right way
-       * round too: a band that keeps a finished stream on it for two minutes is
-       * worse than one that drops it a little promptly. The all-unreachable case
-       * folds in here as well, and it is the one that most deserves a short
-       * window -- a blank room that was never verified should not be cached as
-       * though it had been.
-       */
-      "public, s-maxage=20, stale-while-revalidate=45",
-    );
+res.setHeader(
+    "Cache-Control",
+    /*
+     * Ten seconds while somebody is live, thirty when nobody is.
+     *
+     * This is state-dependent again, which it deliberately was not for a while,
+     * and the reason has changed rather than reverted.
+     *
+     * The page now polls this route every ten seconds while the band is on screen
+     * and every sixty when it is not. Each window is sized to the rate the client
+     * actually asks at in that state, so a poll always lands on a fresh answer
+     * instead of half of them re-reading the same cached copy -- which is what
+     * made a ten second poll look like it was moving when it was not.
+     *
+     * The earlier bug was not the asymmetry, it was the size. A hundred and twenty
+     * seconds on the empty answer meant that if Pingu was already live and Sierra
+     * started a minute later, the edge served the older answer -- Pingu alone --
+     * for up to two minutes. That is the report this all started from: Sierra live
+     * on her own site, one row on this one.
+     *
+     * Thirty seconds on the empty answer is well clear of that. It is also the
+     * state where a visitor is least likely to be watching, since there is no band
+     * to watch, so the longer window costs nothing anyone can see.
+     *
+     * swr matches s-maxage rather than exceeding it, so an expired copy cannot
+     * outlive its own replacement by much.
+     */
+    live.length > 0
+      ? "public, s-maxage=10, stale-while-revalidate=10"
+      : "public, s-maxage=30, stale-while-revalidate=30",
+  );
 
   res.status(200).json({
     checkedAt: new Date().toISOString(),
