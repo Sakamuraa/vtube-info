@@ -147,16 +147,38 @@ export default async function handler(_req: LiveRequest, res: LiveResponse) {
     if (result) live.push(result);
   }
 
-  res.setHeader(
-    "Cache-Control",
-    live.length > 0
-      ? "public, s-maxage=20, stale-while-revalidate=45"
-      : reachable > 0
-        ? "public, s-maxage=120, stale-while-revalidate=300"
-        : // Nothing answered at all. Ask again soon rather than caching a blank
-          // room as though it were a fact.
-          "public, s-maxage=30",
-  );
+    res.setHeader(
+      "Cache-Control",
+      /*
+       * One window for every answer, and it is the short one.
+       *
+       * This used to be the other way round: 20 seconds when somebody was live,
+       * 120 when nobody was, on the reasoning that an empty room is a dull answer
+       * worth holding on to. That reasoning has it exactly backwards.
+       *
+       * A stream STARTING is the event this band exists for, and it is the one
+       * the long window hid. If Pingu was already live and Sierra started a
+       * minute later, the edge was still holding the older answer -- Pingu alone
+       * -- for up to two minutes, and stale-while-revalidate could hand back
+       * that same stale copy once more while it revalidated behind it. Which is
+       * the report this started from: Sierra live on her own site, one row on
+       * this one.
+       *
+       * The expensive direction is the one that was already short. A cold call
+       * fans out to six /api/content endpoints, but each is edge-cached at its
+       * own site and answers in about 10ms, so a miss measures ~440ms end to
+       * end against ~140ms for a hit. Paying that at most once every 20 seconds
+       * is a fair price for not hiding somebody who just went live.
+       *
+       * A stream ENDING now lands on the same schedule, which is the right way
+       * round too: a band that keeps a finished stream on it for two minutes is
+       * worse than one that drops it a little promptly. The all-unreachable case
+       * folds in here as well, and it is the one that most deserves a short
+       * window -- a blank room that was never verified should not be cached as
+       * though it had been.
+       */
+      "public, s-maxage=20, stale-while-revalidate=45",
+    );
 
   res.status(200).json({
     checkedAt: new Date().toISOString(),
