@@ -180,6 +180,60 @@ export const creators: Creator[] = [
     ],
     tags: ["#kanatareina", "#ReinaGambar", "#ReinaGaming", "#ReinaKaraoke"],
   },
+  {
+    slug: "lunie",
+    name: "Lunie",
+    role: "Moon of Eternal Gryph",
+    /*
+     * No "Live 2D", and that is the second row in a row to leave it off.
+     *
+     * Checked rather than copied from the rows above: "Live 2D", "rigging" and
+     * "rigged" appear nowhere in her bio, her posts or her video descriptions, and
+     * the only "runtime" on her channel page is YouTube's own
+     * ShadyCSS.disableRuntime flag. Her own site states the same omission in its
+     * own README. The rig is a claim about a person, and it is only made where the
+     * person makes it -- Sierra because hers says nothing either, Deidey because
+     * hers credits an "Illustrator Live 2D".
+     *
+     * What is here is what her feed shows: Indonesian stream and Shorts titles
+     * against an English bio, and an upload history that is ASMR sessions, covers
+     * and debut trailers. "Stream & cover" is Sierra's phrasing because it is the
+     * same shape of answer, not because the two rows are similar people.
+     */
+    format: "ID/EN VTuber · Stream & cover",
+    /*
+     * Every clause is checkable. The bio is hers verbatim; the join date is off her
+     * own /about; the ASMR and cover series are read off her feed titles; and the
+     * weekly notice is a real recurring post she titles WEEKLY SCHEDULE and
+     * schedules on YouTube. No colour, no personality, nothing about how she looks.
+     */
+    blurb:
+      "The Moon of Eternal Gryph. Bergabung sejak Juni 2023, dengan rutinitas tetap: sesi ASMR oncam, cover yang hampir selalu berbahasa Inggris, dan satu jadwal mingguan yang diumumkan lebih dulu.",
+    href: "https://lunie.vtube-info.xyz",
+    avatar: "https://lunie.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@YourLuLunie" },
+      { label: "X", href: "https://x.com/YourLuLunie" },
+      /*
+       * Trakteer, not TikTok or Discord. It is the same link the other rows with a
+       * Trakteer use, it is on her own channel's Social Media block, and a
+       * donation link is the row a visitor is likeliest to want. Her Instagram and
+       * TikTok exist and are correct, they just are not what this column is for.
+       */
+      { label: "Trakteer", href: "https://trakteer.id/YourLuLunie" },
+    ],
+    /*
+     * Two, not the eight her feed actually contains.
+     *
+     * #CF23, #comifuro, #comifuro23 and #cf23catalogue are convention and
+     * doujin-market tags for her con run; #UtaindoRelay, #TOBEHEROX,
+     * #LonelyUniverse and #EvenThoughIHadLovedYou are relay and cover tags shared
+     * with every other singer taking part. All eight are real, and all eight
+     * describe an event rather than her. These two are the ones that point back at
+     * her, and the same two her own site shows.
+     */
+    tags: ["#YourLuLunie", "#ArtLunie"],
+  },
 ];
 
 /**

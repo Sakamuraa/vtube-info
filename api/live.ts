@@ -3,19 +3,19 @@
  *
  * Who among the indexed creators is broadcasting right now.
  *
- * Why this is a function and not five fetches from the browser
- * ----------------------------------------------------------
- * Each creator's own site already answers `/api/content` with a live flag per
- * stream, and that detection is the part worth not rewriting: it reads the
- * thumbnail badge and the viewer row off the channel grid, which is where YouTube
- * actually says it. So this route reuses those endpoints instead of scraping five
- * channels a second time.
+   * Why this is a function and not one fetch per creator from the browser
+   * ------------------------------------------------------------------
+   * Each creator's own site already answers `/api/content` with a live flag per
+   * stream, and that detection is the part worth not rewriting: it reads the
+   * thumbnail badge and the viewer row off the channel grid, which is where YouTube
+   * actually says it. So this route reuses those endpoints instead of scraping every
+   * channel a second time.
  *
  * The browser cannot call them directly. They sit on sibling subdomains and answer
  * without an `Access-Control-Allow-Origin` header, which is correct for their own
- * pages and a wall for a cross-origin fetch. Adding CORS to five separate sites to
- * serve one page here is the wrong trade; one function on this side of the wall is
- * the same work in one place.
+   * pages and a wall for a cross-origin fetch. Adding CORS to every one of them to
+   * serve one page here is the wrong trade; one function on this side of the wall is
+   * the same work in one place.
  *
  * Why nothing is imported from src/
  * ----------------------------------
@@ -82,19 +82,20 @@ type ContentPayload = {
  * src/content.ts without a line here is simply not polled -- it renders as a normal
  * index row and nothing else.
  */
-const ORIGINS: { slug: string; origin: string }[] = [
-  { slug: "mizu-hamzazu", origin: "https://mizuhamzazu.vtube-info.xyz" },
-  { slug: "pingu-stardine", origin: "https://pingu.vtube-info.xyz" },
-  { slug: "sierra-mooniva", origin: "https://sierramooniva.vtube-info.xyz" },
-  { slug: "deidey", origin: "https://deidey.vtube-info.xyz" },
-  { slug: "kanata-reina", origin: "https://kanatareina.vtube-info.xyz" },
-];
+  const ORIGINS: { slug: string; origin: string }[] = [
+    { slug: "mizu-hamzazu", origin: "https://mizuhamzazu.vtube-info.xyz" },
+    { slug: "pingu-stardine", origin: "https://pingu.vtube-info.xyz" },
+    { slug: "sierra-mooniva", origin: "https://sierramooniva.vtube-info.xyz" },
+    { slug: "deidey", origin: "https://deidey.vtube-info.xyz" },
+    { slug: "kanata-reina", origin: "https://kanatareina.vtube-info.xyz" },
+    { slug: "lunie", origin: "https://lunie.vtube-info.xyz" },
+  ];
 
 /**
- * Generous, because these endpoints are edge-cached and normally answer in a few
- * hundred milliseconds. Long enough that a cold function is not cut short, short
- * enough that five of them in parallel stay inside the platform's own limit.
- */
+   * Generous, because these endpoints are edge-cached and normally answer in a few
+   * hundred milliseconds. Long enough that a cold function is not cut short, short
+   * enough that polling all of them in parallel stays inside the platform's own limit.
+   */
 const TIMEOUT_MS = 5000;
 
 const ACCEPT = { accept: "application/json" };
@@ -132,8 +133,9 @@ async function check(
 }
 
 export default async function handler(_req: LiveRequest, res: LiveResponse) {
-  // Parallel rather than sequential: five sequential timeouts would be five times
-  // the slowest one, and this runs on every visitor's page load.
+    // Parallel rather than sequential: run one after another and the slowest
+    // endpoint decides the whole response, multiplied by however many there are.
+    // This runs on every visitor's page load.
   const results = await Promise.all(ORIGINS.map(check));
 
   const live: LiveEntry[] = [];
