@@ -1,27 +1,23 @@
 import { Link } from "react-router-dom";
 
 /**
- * Display faces side by side, at the sizes they would actually be used at.
+ * Sans candidates side by side, at the sizes they would actually be used at.
  *
- * This exists because the typeface has been chosen twice already without anyone
- * looking at it rendered. Cormorant Garamond read as too plain. Bodoni Moda --
- * a Didone set at font-semibold -- read as glamour rather than the quiet
- * prestige that was asked for. Both verdicts were argued from metrics, and
- * neither was checked against the rendered page.
+ * The first round of this specimen offered five serifs and every one was wrong.
+ * Sam's reference for "elit dan elegan" turned out to be a Jost semibold heading
+ * on this very page -- set in the BODY face, not the display face -- which says
+ * the register being asked for was a geometric sans the whole time. Jost now
+ * ships as both the display and the reading face; this route is here in case
+ * something in that register reads better still.
  *
- * So each face is shown three ways, and the first two rows are the ones that
- * matter:
- *
- *   600  the weight every display element on this site is currently set in
- *   400  the same line lighter, which is where most of these faces actually live
- *   18px the nav wordmark, where a Didone's hairlines start to fail
- *
- * Judging a serif at a single weight is what produced the wrong answer twice.
+ * Each face is shown at 600, the weight the masthead is set in, and at 18px,
+ * the nav wordmark. Both matter: a geometric sans that looks composed at 112px
+ * can go shapeless at 18, and the wordmark is where that shows first.
  */
 
 interface Candidate {
   family: string;
-  /** Cinzel is a titling face and ships no italic; the accent word needs one. */
+  /** Manrope and Sora have no italic in Fontsource; the accent word needs one. */
   italic: boolean;
   /** What the face is for, and where it would go wrong. */
   note: string;
@@ -29,29 +25,29 @@ interface Candidate {
 
 const CANDIDATES: Candidate[] = [
   {
-    family: "Bodoni Moda Variable",
+    family: "Jost Variable",
     italic: true,
-    note: "Yang sekarang dipakai. Didone berkontras tinggi, tapi di bobot 600 batang hurufnya membesar dan kontras yang justru membuatnya terasa mewah justru menghilang.",
+    note: "Referensi Sam, dan yang sekarang dipakai untuk masthead maupun teks. Geometris ala Futura: besar, tenang, dan tidak banyak bertingkah.",
   },
   {
-    family: "Fraunces Variable",
+    family: "Plus Jakarta Sans Variable",
     italic: true,
-    note: "Old-style hangat yang serasi dengan peach. Punya sumbu SOFT dan WONK, jadi bisa dijaga tetap kalem; kalau dibiarkan apa adanya, ia jadi sangat khas dan bukan yang tenang.",
+    note: "Dirancang untuk Jakarta, jadi paling nyambung dengan konteksnya. Sedikit lebih hangat dan humanist daripada Jost, lebih kecil dari huruf besarnya.",
   },
   {
-    family: "Newsreader Variable",
+    family: "Schibsted Grotesk Variable",
     italic: true,
-    note: "Dibuat khusus untuk layar, dengan kaligrafi yang tenang. Paling mendekati Mendelahan: tidak mencolok, tapi juga tidak terlihat murah.",
+    note: "Neo-grotesk yang tetap sopan dan tidak·semboyan. Karakter ‘elit’ paling halus di daftar ini, dan risikonya jadi terlalu pelan.",
   },
   {
-    family: "Cormorant Variable",
-    italic: true,
-    note: "Klasik yang lapang dan halus. Cocok kalau yang dicari kesegaran; risikonya terasa rapuh pada ukuran kecil.",
-  },
-  {
-    family: "Cinzel Variable",
+    family: "Manrope Variable",
     italic: false,
-    note: "Roman kapital yang monumental, dan yang Sam pilih untuk Kasdea. Tidak punya italic, jadi kata aksennya harus diganti.",
+    note: "Geometris modern yang hangat, dengan angka yang enak dibaca. Cocok kalau nanti ada hitungan di dalam teks; tidak punya italic.",
+  },
+  {
+    family: "Sora Variable",
+    italic: false,
+    note: "Geometris dengan lengkung yang terasa sendiri. Paling ‘desain’ di daftar, dan justru itu yang membuatnya kurang tenang untuk masthead.",
   },
 ];
 
@@ -69,14 +65,10 @@ export function Tipe() {
           Memilih face display untuk masthead
         </h1>
         <p className="mt-5 max-w-[62ch] leading-relaxed text-[var(--text-muted)]">
-          Semua face di bawah memakai teks, ukuran, dan palet yang sama dengan
-          home page, supaya yang dibandingkan benar-benar hasil hurufnya dan
-          bukan sekadar nama typeface. Baris{" "}
-          <strong className="text-[var(--text)]">600</strong> adalah bobot yang
-          sekarang dipakai seluruh elemen display, dan itulah sebab Bodoni terasa
-          seperti yang terjadi. Baris{" "}
-          <strong className="text-[var(--text)]">400</strong> menunjukkan wajah
-          sebenarnya dari tiap face.
+          Putar pertama halaman ini menawarkan lima serif, dan kelimanya salah.
+          Acuan yang Sam maksud ternyata ada di halaman ini juga: baris judul di
+          atas, yang memakai face teks. Masthead sekarang memakai face yang sama.
+          Kalau di daftar ini ada yang lebih enak, sebut namanya.
         </p>
       </div>
 
@@ -90,29 +82,24 @@ export function Tipe() {
           </div>
 
           <div className="mt-8 space-y-6">
-            {[600, 400].map((weight) => (
-              <div
-                key={weight}
-                className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-6"
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-6">
+              <span className="w-16 shrink-0 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
+                600
+              </span>
+              <p
+                className="text-[clamp(1.6rem,4.4vw,2.75rem)] leading-[1.02] tracking-[-0.015em]"
+                style={{ fontFamily: `"${family}", sans-serif`, fontWeight: 600 }}
               >
-                <span className="w-16 shrink-0 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
-                  {weight}
-                </span>
-                <p
-                  className="text-[clamp(1.6rem,4.4vw,2.75rem)] leading-[1.02] tracking-[-0.015em]"
-                  style={{ fontFamily: `"${family}", serif`, fontWeight: weight }}
+                {HERO}{" "}
+                <em
+                  className="not-italic text-[var(--accent)]"
+                  style={italic ? { fontStyle: "italic" } : undefined}
                 >
-                  {HERO}{" "}
-                  <em
-                    className="not-italic text-[var(--accent)]"
-                    style={italic ? { fontStyle: "italic" } : undefined}
-                  >
-                    {ACCENT}
-                  </em>
-                  .
-                </p>
-              </div>
-            ))}
+                  {ACCENT}
+                </em>
+                .
+              </p>
+            </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-baseline sm:gap-6">
               <span className="w-16 shrink-0 font-mono text-[11px] tabular-nums text-[var(--text-muted)]">
@@ -120,7 +107,7 @@ export function Tipe() {
               </span>
               <p
                 className="text-lg font-semibold tracking-tight"
-                style={{ fontFamily: `"${family}", serif` }}
+                style={{ fontFamily: `"${family}", sans-serif` }}
               >
                 VTube Info
               </p>
@@ -130,12 +117,12 @@ export function Tipe() {
       ))}
 
       <p className="py-10 text-sm leading-relaxed text-[var(--text-muted)]">
-        Punya pilihan? Sebut saja namanya, dan face itu diganti di{" "}
-        <code className="font-mono text-[var(--text)]">src/index.css</code>.
-        Kalau belum yakin, yang paling aman untuk palet ini adalah{" "}
-        <strong className="text-[var(--text)]">Newsreader</strong> di bobot 400:
-        paling tidak berisiko terbaca glamor, dan paling tidak mendekati kesan
-        murah.{" "}
+        Punya pilihan? Sebut saja namanya, dan face itu menggantikan{" "}
+        <code className="font-mono text-[var(--text)]">--font-display</code> di{" "}
+        <code className="font-mono text-[var(--text)]">src/index.css</code>. Kalau
+        tidak,{" "}
+        <strong className="text-[var(--text)]">Jost</strong> tetap menjadi pilihan
+        karena itu memang yang Sam tunjuk.{" "}
         <Link to="/" className="underline underline-offset-4 hover:opacity-80">
           Kembali ke home
         </Link>

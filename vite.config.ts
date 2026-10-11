@@ -19,15 +19,15 @@ import type { Plugin } from "vite";
  * files this page never paints -- preloading those would spend connections on
  * bytes that are only downloaded if some glyph happens to need them.
  *
- * And only the three faces the site chrome actually sets. The specimen route
- * declares four more display faces purely so they can be compared on /tipe; a
- * bare subset filter would hoist those onto every page load to serve one route.
+ * And only the faces the site chrome actually sets. The specimen route declares
+ * four more sans faces purely so they can be compared on /tipe; a bare subset
+ * filter would hoist those onto every page load to serve one route.
  *
  * crossorigin is not optional. Fonts are always fetched in CORS mode, so a
  * preload without it does not match the later request and the browser downloads
  * every face twice.
  */
-const PRELOADABLE = /^\/assets\/(bodoni-moda|jost|azeret-mono)-latin-wght-(?:normal|italic)-[^/]+\.woff2$/;
+const PRELOADABLE = /^\/assets\/(jost|azeret-mono)-latin-wght-(?:normal|italic)-[^/]+\.woff2$/;
 
 function preloadLatinFonts(): Plugin {
   return {

@@ -99,7 +99,10 @@ export function Home() {
           </p>
 
           <h1
-            className="mt-8 max-w-[15ch] font-display text-[clamp(2.75rem,9vw,7rem)] font-semibold leading-[0.94] tracking-[-0.02em]"
+            // leading-[0.94] was a Didone setting. A geometric sans has taller
+            // caps and a longer descender, and 0.94 starts clipping the y and p in
+            // "people" at 7rem.
+            className="mt-8 max-w-[15ch] font-display text-[clamp(2.75rem,9vw,7rem)] font-semibold leading-[1.02] tracking-[-0.03em]"
             data-hero-title
           >
             The people behind the{" "}
