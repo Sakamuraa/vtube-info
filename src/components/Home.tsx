@@ -95,7 +95,7 @@ export function Home() {
             className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--accent)]"
             data-hero-line
           >
-            Direktori independen · vtube-info.xyz
+            Direktori independen
           </p>
 
           <h1

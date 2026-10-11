@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
-@import "@fontsource-variable/cormorant-garamond";
-@import "@fontsource-variable/outfit";
+@import "@fontsource-variable/bodoni-moda";
+@import "@fontsource-variable/bodoni-moda/wght-italic.css";
+@import "@fontsource-variable/jost";
+@import "@fontsource-variable/azeret-mono";
 
 /*
  * Palette
@@ -34,8 +36,29 @@
   --color-dawn: #f7c99a;
   --color-dawn-bright: #ffe6b8;
 
-  --font-display: "Cormorant Garamond Variable", Georgia, serif;
-  --font-sans: "Outfit Variable", system-ui, sans-serif;
+  /*
+   * Three faces, each with exactly one job.
+   *
+   * Display is a Didone. Bodoni Moda's thick/thin contrast is what makes the
+   * masthead read as set rather than typed, and it is the only face allowed to
+   * be thin. It carries the hero and every creator's name.
+   *
+   * Body is Jost. A Didone set at paragraph size turns to lace by 16px, so the
+   * reading text moves to a geometric sans with an even stroke instead.
+   *
+   * Mono is Azeret Mono, and it is a real token here rather than the stack this
+   * used to inherit. The viewer counts want tabular figures and the kicker wants
+   * letterspaced caps; both were being handed a system face that reads as a
+   * developer tool sitting next to this serif.
+   *
+   * All three are the weight-axis builds, not the optical-size ones. Twelve-odd
+   * display elements ask for font-semibold by name, and the opsz build carries
+   * optical size instead of weight -- semibold there is a synthesised bold,
+   * which smears the hairlines that are the whole point of a Didone.
+   */
+  --font-display: "Bodoni Moda Variable", Georgia, "Times New Roman", serif;
+  --font-sans: "Jost Variable", system-ui, sans-serif;
+  --font-mono: "Azeret Mono Variable", ui-monospace, monospace;
 
   /*
    * One radius scale. The brief is a portal with a soft, rounded character, so
@@ -79,9 +102,6 @@
     background-color: var(--surface);
     color: var(--text);
     font-family: var(--font-sans);
-    /* Optical sizing on the display face: the hero sets a very large size and
-       the low-contrast cut of a Garamond stops holding together up there. */
-    font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }

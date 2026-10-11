@@ -7,7 +7,11 @@ export function Footer() {
     <footer className="border-t border-[var(--line)] py-12">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 text-sm text-[var(--text-muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <p>
-          <span className="font-display font-semibold text-[var(--text)]">
+          {/* text-lg, set explicitly: this inherits text-sm from the row above,
+              and 14px is below where a Didone's thin strokes stay solid. It also
+              puts the wordmark at the same size as the one in the nav, which is
+              where a repeated mark is expected to match. */}
+          <span className="font-display text-lg font-semibold text-[var(--text)]">
             {site.name}
           </span>
           <span className="mx-2 text-[var(--line)]">·</span>
