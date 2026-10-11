@@ -234,6 +234,43 @@ export const creators: Creator[] = [
      */
     tags: ["#YourLuLunie", "#ArtLunie"],
   },
+  {
+    slug: "astelica-kasdea",
+    name: "Astelica Kasdea",
+    role: "Fallen angel",
+    /*
+     * "Live 2D" here, and it is the most directly sourced of the rows: her own X
+     * bio reads "L2D by @biittertaste & @saikafuri". That is her saying so and
+     * naming both illustrators in the same breath, which is the standard the
+     * other rows are held to -- Deidey's is the same shape, and the rows without
+     * it are the ones where nothing states it.
+     */
+    format: "ID/EN VTuber · Live 2D",
+    /*
+     * Every clause traceable. The bio is hers in both places it appears; "fallen
+     * angel living in her dreams" is the first line of it. The covers are not
+     * assumed from the bio's "I love music, singing" -- her video tab is almost
+     * entirely covers, which is what that line turns out to mean in practice. The
+     * five tags are hers too, and in her order: she published a post that is
+     * a key, labelling each one General / Live / Art / Music / Meme, so this is
+     * her taxonomy rather than a selection made here.
+     */
+    blurb:
+      "Fallen angel yang tinggal di dream realm. Stream, cover, dan gambar yang dikumpulkan dari kreator lain lewat #kasdeart.",
+    href: "https://astelica-kasdea.vtube-info.xyz",
+    avatar: "https://astelica-kasdea.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@AstelicaKasdea" },
+      { label: "X", href: "https://x.com/astelicakasdea" },
+    ],
+    /*
+     * Her own labels, in her own order, taken from the post that defines them.
+     * Worth noting against the row above: those four had to be chosen from a
+     * timeline full of convention tags, while these five arrived already sorted
+     * by the person they describe.
+     */
+    tags: ["#AstelicaKasdea", "#LicaLive", "#kasdeart", "#utanodea", "#kasdeakocak"],
+  },
 ];
 
 /**

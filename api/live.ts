@@ -90,8 +90,9 @@ type ContentPayload = {
     { slug: "sierra-mooniva", origin: "https://sierramooniva.vtube-info.xyz" },
     { slug: "deidey", origin: "https://deidey.vtube-info.xyz" },
     { slug: "kanata-reina", origin: "https://kanatareina.vtube-info.xyz" },
-    { slug: "lunie", origin: "https://lunie.vtube-info.xyz" },
-  ];
+{ slug: "lunie", origin: "https://lunie.vtube-info.xyz" },
+  { slug: "astelica-kasdea", origin: "https://astelica-kasdea.vtube-info.xyz" },
+];
 
 /**
    * Generous, because these endpoints are edge-cached and normally answer in a few
