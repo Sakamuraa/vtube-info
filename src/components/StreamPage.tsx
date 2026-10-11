@@ -52,7 +52,6 @@ export function StreamPage() {
   const chat = useLiveChat(id, currentTime);
 
   const heading = liveEntry?.title || chat.title || "Siaran";
-  const isLive = chat.mode === "live";
 
   useEffect(() => {
     document.title = `${heading} · VTube Info`;
@@ -96,7 +95,18 @@ export function StreamPage() {
               <ArrowLeft size={14} weight="bold" aria-hidden="true" />
               Kembali ke portal
             </Link>
-            <StatusPill mode={chat.mode} />
+            <div className="flex items-center gap-3">
+              <StatusPill mode={chat.mode} />
+              {liveEntry?.viewers != null && (
+                <span
+                  className="inline-flex items-center gap-1.5 font-mono text-sm tabular-nums text-[var(--text-muted)]"
+                  data-live-viewers
+                >
+                  <Eye size={14} aria-hidden="true" />
+                  <LiveNumber value={liveEntry.viewers} />
+                </span>
+              )}
+            </div>
           </div>
 
           <div
@@ -126,15 +136,36 @@ export function StreamPage() {
               </div>
             </div>
 
-            {liveEntry?.viewers != null && (
-              <span
-                className="inline-flex items-baseline font-mono text-sm tabular-nums text-[var(--text-muted)]"
-                data-live-viewers
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-mono text-xs uppercase tracking-[0.14em] text-[var(--text-muted)]">
+              <a
+                href={`https://www.youtube.com/watch?v=${id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
               >
-                <LiveNumber value={liveEntry.viewers} />
-                <span className="ml-1.5">menonton</span>
-              </span>
-            )}
+                Buka di YouTube
+                <ArrowSquareOut size={13} aria-hidden="true" />
+              </a>
+              {creator && (
+                <a
+                  href={creator.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
+                >
+                  Situs {creator.name}
+                  <ArrowSquareOut size={13} aria-hidden="true" />
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={copyLink}
+                className="inline-flex items-center gap-1.5 uppercase tracking-[0.14em] transition-colors hover:text-[var(--accent)]"
+              >
+                {copied ? <Check size={13} aria-hidden="true" /> : <CopySimple size={13} aria-hidden="true" />}
+                {copied ? "Tersalin" : "Salin link"}
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -162,47 +193,9 @@ export function StreamPage() {
       {/* C. Broadsheet title + meta + actions. data-reveal is safe here (below the
           player row), the same scroll-gated reveal the home index uses. */}
       <section className="mx-auto max-w-6xl px-5 pt-10 sm:px-8" data-reveal>
-        <h1 className="max-w-[24ch] font-display text-[clamp(1.6rem,4.5vw,3rem)] font-semibold leading-[1.05]">
+        <h1 className="max-w-[42ch] font-display text-[clamp(1.15rem,2.4vw,1.6rem)] font-semibold leading-[1.05]">
           {heading}
         </h1>
-
-        <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3 font-mono text-xs uppercase tracking-[0.14em] text-[var(--text-muted)]">
-          <span className="text-[var(--accent)]">{isLive ? "Live" : "Replay"}</span>
-          {liveEntry?.viewers != null && (
-            <span className="inline-flex items-center gap-1.5">
-              <Eye size={13} aria-hidden="true" />
-              <LiveNumber value={liveEntry.viewers} />
-            </span>
-          )}
-          <a
-            href={`https://www.youtube.com/watch?v=${id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
-          >
-            Buka di YouTube
-            <ArrowSquareOut size={13} aria-hidden="true" />
-          </a>
-          {creator && (
-            <a
-              href={creator.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 transition-colors hover:text-[var(--accent)]"
-            >
-              Situs {creator.name}
-              <ArrowSquareOut size={13} aria-hidden="true" />
-            </a>
-          )}
-          <button
-            type="button"
-            onClick={copyLink}
-            className="inline-flex items-center gap-1.5 uppercase tracking-[0.14em] transition-colors hover:text-[var(--accent)]"
-          >
-            {copied ? <Check size={13} aria-hidden="true" /> : <CopySimple size={13} aria-hidden="true" />}
-            {copied ? "Tersalin" : "Salin link"}
-          </button>
-        </div>
 
         {creator && creator.tags.length > 0 && (
           <ul className="mt-5 flex flex-wrap gap-2">

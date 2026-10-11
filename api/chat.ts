@@ -42,6 +42,7 @@ const KEY = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8";
 const LIVE_CHAT = `https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key=${KEY}`;
 const LIVE_CHAT_REPLAY = `https://www.youtube.com/youtubei/v1/live_chat/get_live_chat_replay?key=${KEY}`;
 const WATCH = "https://www.youtube.com/watch";
+const PLAYER = `https://www.youtube.com/youtubei/v1/player?key=${KEY}`;
 
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
@@ -609,6 +610,39 @@ interface WatchFacts {
  */
 let watchCache: { videoId: string; facts: WatchFacts; at: number } | null = null;
 
+/**
+ * Title and description straight from the InnerTube player endpoint.
+ *
+ * The watch page is sometimes served stripped to a datacenter IP -- notably for a
+ * live broadcast -- so its `videoDetails` (title, shortDescription) never parse.
+ * This endpoint is an API, not the bot-walled HTML page, and answers reliably, so
+ * it fills whatever the page did not carry. Returns null on any failure; the
+ * caller keeps what it already had.
+ */
+async function fetchPlayerDetails(
+  videoId: string,
+  signal: AbortSignal,
+): Promise<{ title: string | null; description: string | null } | null> {
+  try {
+    const res = await fetch(PLAYER, {
+      method: "POST",
+      headers: { "content-type": "application/json", "user-agent": UA },
+      signal,
+      body: JSON.stringify(chatContext({ videoId, contentCheckOk: true, racyCheckOk: true })),
+    });
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as unknown;
+    const videoDetails = pick<Record<string, unknown>>(json, "videoDetails");
+    return {
+      title: pick<string>(videoDetails, "title")?.trim() || null,
+      description: pick<string>(videoDetails, "shortDescription")?.trim() || null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function readWatch(videoId: string, signal: AbortSignal): Promise<WatchFacts | null> {
   // A live stream's window has to be short enough that the transition to finished
   // is noticed; a recording's can be long because nothing about it will change.
@@ -658,6 +692,17 @@ async function readWatch(videoId: string, signal: AbortSignal): Promise<WatchFac
     isLive: readIsLive(player),
     durationSeconds: numberOrNull(pick<string>(videoDetails, "lengthSeconds")),
   };
+
+  // Fill title/description from the player API when the watch page came back
+  // stripped (common for a live broadcast on a datacenter IP). One extra call,
+  // only on a cache miss.
+  if (!facts.title || !facts.description) {
+    const details = await fetchPlayerDetails(videoId, signal);
+    if (details) {
+      facts.title = facts.title ?? details.title;
+      facts.description = facts.description ?? details.description;
+    }
+  }
 
   watchCache = { videoId, facts, at: Date.now() };
   return facts;
