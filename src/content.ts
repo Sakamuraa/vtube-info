@@ -257,8 +257,8 @@ export const creators: Creator[] = [
      */
     blurb:
       "Fallen angel yang tinggal di dream realm. Stream, cover, dan gambar yang dikumpulkan dari kreator lain lewat #kasdeart.",
-    href: "https://astelica-kasdea.vtube-info.xyz",
-    avatar: "https://astelica-kasdea.vtube-info.xyz/og-image.png",
+    href: "https://kasdea.vtube-info.xyz",
+    avatar: "https://kasdea.vtube-info.xyz/og-image.png",
     channels: [
       { label: "YouTube", href: "https://www.youtube.com/@AstelicaKasdea" },
       { label: "X", href: "https://x.com/astelicakasdea" },
