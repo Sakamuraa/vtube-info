@@ -6,6 +6,7 @@ import { Home } from "./components/Home";
 import { Kreator } from "./components/Kreator";
 import { Nav } from "./components/Nav";
 import { Tentang } from "./components/Tentang";
+import { Tipe } from "./components/Tipe";
 import { mountPageMotion } from "./motion";
 
 /**
@@ -50,6 +51,9 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/kreator" element={<Kreator />} />
             <Route path="/tentang" element={<Tentang />} />
+            {/* Specimen route for choosing the display face. Unlinked on purpose:
+                it is a decision tool, not a page anyone should navigate to. */}
+            <Route path="/tipe" element={<Tipe />} />
           </Routes>
         </MotionRoot>
       </main>

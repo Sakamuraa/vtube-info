@@ -6,6 +6,25 @@
 @import "@fontsource-variable/azeret-mono";
 
 /*
+ * Display faces under consideration, for /type.
+ *
+ * These exist to be compared, not to ship: one of them replaces --font-display
+ * once Sam picks, and the rest come out with the specimen route. A face only
+ * downloads if something uses it, so leaving them declared costs nothing on the
+ * pages that do not reference them.
+ *
+ * Cinzel is imported without an italic file because it has none -- it is a
+ * titling face drawn for capitals, and Fontsource does not fabricate one.
+ */
+@import "@fontsource-variable/fraunces";
+@import "@fontsource-variable/fraunces/wght-italic.css";
+@import "@fontsource-variable/newsreader";
+@import "@fontsource-variable/newsreader/wght-italic.css";
+@import "@fontsource-variable/cormorant";
+@import "@fontsource-variable/cormorant/wght-italic.css";
+@import "@fontsource-variable/cinzel";
+
+/*
  * Metric-matched fallbacks.
  *
  * The faces ship with font-display: swap, so the page paints in whatever the
