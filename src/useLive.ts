@@ -24,6 +24,8 @@ export type LiveEntry = {
   title: string;
   viewers: number | null;
   streamUrl: string;
+  /** YouTube video id, used to route to the portal's own /streams?id= page. */
+  videoId: string;
   /** Their own site, used when the stream link is missing. */
   site: string;
 };

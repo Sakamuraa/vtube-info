@@ -46,6 +46,18 @@ import { useLive, type LiveEntry } from "../useLive";
  */
 const FEATURED = 2;
 
+/**
+ * Pull the 11-char YouTube id out of a watch/live/short link.
+ *
+ * The live rows carry a `videoId` from /api/live now, but this is the fallback
+ * for the rare entry that does not: it lets the row still route to the portal's
+ * own /streams?id= page rather than leaving for YouTube.
+ */
+function youTubeId(url: string): string | null {
+  const m = url.match(/(?:v=|\/live\/|youtu\.be\/|\/embed\/|\/shorts\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
 export function Home() {
   const count = creatorCount();
   const featured = creators.slice(0, FEATURED);
@@ -301,10 +313,8 @@ function OnLive({ rows }: { rows: { entry: LiveEntry; creator: Creator }[] }) {
       <ul className="mt-8 border-t border-[var(--line)]" data-stagger>
         {rows.map(({ entry, creator }) => (
           <li key={entry.slug}>
-            <a
-              href={entry.streamUrl || creator.href}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              to={`/streams?id=${entry.videoId || youTubeId(entry.streamUrl ?? "") || ""}`}
               className="group grid grid-cols-[3.5rem_1fr] items-center gap-x-5 gap-y-3 border-b border-[var(--line)] py-6 transition-colors hover:bg-[color-mix(in_oklab,var(--surface-deep)_45%,transparent)] md:grid-cols-[4.5rem_1fr_auto] md:gap-x-8"
             >
               <img
@@ -356,7 +366,7 @@ function OnLive({ rows }: { rows: { entry: LiveEntry; creator: Creator }[] }) {
                   />
                 </span>
               </span>
-            </a>
+            </Link>
           </li>
         ))}
       </ul>

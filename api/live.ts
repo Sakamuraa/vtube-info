@@ -58,6 +58,8 @@ export interface LiveEntry {
   viewers: number | null;
   /** Direct watch link, so a row can skip the detour through the fan site. */
   streamUrl: string;
+  /** YouTube video id, so the portal can route to its own /streams?id= page. */
+  videoId: string;
   /** Their own site, used as the row's fallback link. */
   site: string;
 }
@@ -176,6 +178,7 @@ async function check(
       title: live.title ?? "",
       viewers,
       streamUrl: live.url ?? "",
+      videoId: live.videoId ?? "",
       site: target.origin,
     };
   } catch {

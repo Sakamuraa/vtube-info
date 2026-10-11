@@ -5,6 +5,7 @@ import { Footer } from "./components/Footer";
 import { Home } from "./components/Home";
 import { Kreator } from "./components/Kreator";
 import { Nav } from "./components/Nav";
+import { StreamPage } from "./components/StreamPage";
 import { Tentang } from "./components/Tentang";
 import { mountPageMotion } from "./motion";
 
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/kreator" element={<Kreator />} />
             <Route path="/tentang" element={<Tentang />} />
+            <Route path="/streams" element={<StreamPage />} />
 
             {/*
               Anything unmatched goes home. Without this the router renders no
