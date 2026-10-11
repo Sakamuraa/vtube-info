@@ -6,6 +6,66 @@
 @import "@fontsource-variable/azeret-mono";
 
 /*
+ * Metric-matched fallbacks.
+ *
+ * The faces ship with font-display: swap, so the page paints in whatever the
+ * stack names after them until the woff2 arrives, and the swap afterwards moves
+ * the layout. size-adjust scales the fallback's advances to the face standing in
+ * for it, so the swap stops moving things.
+ *
+ * The display ratio is NOT a text-width ratio, and that took a measurement to
+ * establish. The hero is capped with max-w-[15ch], and `ch` is the advance of
+ * "0" -- so the box the heading lays out in is set by the digit, not by the
+ * sentence. Scaling Georgia by Bodoni's sentence-width ratio (91.93%) made the
+ * box 140px narrower than it should be, which is a far worse jump than the one
+ * it was meant to remove: 50px unadjusted went to 133px.
+ *
+ * So it is solved from the rendered result instead. Build, block every woff2,
+ * read the box, compare against the box the real face produces:
+ *
+ *     no size-adjust ...... 1031px   (shift -50px)
+ *     103% ................ 1062px   (shift -19px)
+ *     105% ................ 1083px   (shift  +2px)   <- used
+ *     106% and above ...... 1088px   (shift  +7px, capped by the container)
+ *
+ * 106% stops helping because the measure hits the container width and stops
+ * responding to the descriptor at all.
+ *
+ * The other two are not ch-constrained -- their boxes are the container either
+ * way -- so a sentence-width ratio is the right measure for them:
+ *
+ *   sans   Jost   400 vs Segoe UI 400 ...... 900.2 / 937.4  = 96.03%
+ *   mono   Azeret 400 vs Consolas   400 ..... 325.0 / 274.9  = 118.22%
+ *
+ * The mono figure is the least portable of the three. ui-monospace resolves to
+ * a different face per platform and this is tuned to the 0.55em advance that
+ * Consolas and its relatives use; elsewhere it lands closer than nothing.
+ *
+ * Only size-adjust is set. ascent/descent/line-gap overrides are deliberately
+ * absent: every element setting this type also sets a line-height, so the line
+ * box is already fixed and those would move the baseline inside a box that no
+ * longer changes size -- helping nothing, and easy to get subtly wrong on top of
+ * the size-adjust ordering.
+ */
+@font-face {
+  font-family: "Bodoni Moda Fallback";
+  src: local("Georgia"), local("Times New Roman");
+  size-adjust: 105%;
+}
+
+@font-face {
+  font-family: "Jost Fallback";
+  src: local("Segoe UI"), local("Helvetica Neue"), local("Arial");
+  size-adjust: 96.03%;
+}
+
+@font-face {
+  font-family: "Azeret Mono Fallback";
+  src: local("Consolas"), local("Menlo"), local("DejaVu Sans Mono");
+  size-adjust: 118.22%;
+}
+
+/*
  * Palette
  * -------
  * Three colours and the neutrals they sit on. The brief named them, so they are
@@ -56,9 +116,9 @@
    * optical size instead of weight -- semibold there is a synthesised bold,
    * which smears the hairlines that are the whole point of a Didone.
    */
-  --font-display: "Bodoni Moda Variable", Georgia, "Times New Roman", serif;
-  --font-sans: "Jost Variable", system-ui, sans-serif;
-  --font-mono: "Azeret Mono Variable", ui-monospace, monospace;
+  --font-display: "Bodoni Moda Variable", "Bodoni Moda Fallback", Georgia, "Times New Roman", serif;
+  --font-sans: "Jost Variable", "Jost Fallback", system-ui, sans-serif;
+  --font-mono: "Azeret Mono Variable", "Azeret Mono Fallback", ui-monospace, monospace;
 
   /*
    * One radius scale. The brief is a portal with a soft, rounded character, so
