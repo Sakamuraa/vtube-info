@@ -22,25 +22,6 @@
 @import "@fontsource-variable/azeret-mono";
 
 /*
- * Sans alternatives under consideration, for /tipe.
- *
- * Declared so they can be compared, not because any of them ships. A face only
- * downloads if something uses it, so they cost nothing on the pages that do not
- * reference them, and the preload filter in vite.config.ts names the families
- * worth preloading rather than matching a broad pattern -- otherwise these four
- * would be fetched on every page load to serve one route.
- *
- * Manrope and Sora have no italic in Fontsource, and the specimen says so next
- * to their rows rather than quietly synthesising an oblique.
- */
-@import "@fontsource-variable/plus-jakarta-sans";
-@import "@fontsource-variable/plus-jakarta-sans/wght-italic.css";
-@import "@fontsource-variable/schibsted-grotesk";
-@import "@fontsource-variable/schibsted-grotesk/wght-italic.css";
-@import "@fontsource-variable/manrope";
-@import "@fontsource-variable/sora";
-
-/*
  * Metric-matched fallbacks.
  *
  * The faces ship with font-display: swap, so the page paints in whatever the

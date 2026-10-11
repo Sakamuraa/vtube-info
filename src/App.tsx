@@ -1,12 +1,11 @@
 import { useEffect, useRef } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { Footer } from "./components/Footer";
 import { Home } from "./components/Home";
 import { Kreator } from "./components/Kreator";
 import { Nav } from "./components/Nav";
 import { Tentang } from "./components/Tentang";
-import { Tipe } from "./components/Tipe";
 import { mountPageMotion } from "./motion";
 
 /**
@@ -51,9 +50,15 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/kreator" element={<Kreator />} />
             <Route path="/tentang" element={<Tentang />} />
-            {/* Specimen route for choosing the display face. Unlinked on purpose:
-                it is a decision tool, not a page anyone should navigate to. */}
-            <Route path="/tipe" element={<Tipe />} />
+
+            {/*
+              Anything unmatched goes home. Without this the router renders no
+              route at all, and the visitor lands on a live nav over an empty
+              main -- which is what /tipe did for as long as the specimen page
+              existed and was then deleted. replace, so Back does not bounce
+              between the dead URL and the home page.
+            */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </MotionRoot>
       </main>

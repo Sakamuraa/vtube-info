@@ -19,9 +19,9 @@ import type { Plugin } from "vite";
  * files this page never paints -- preloading those would spend connections on
  * bytes that are only downloaded if some glyph happens to need them.
  *
- * And only the faces the site chrome actually sets. The specimen route declares
- * four more sans faces purely so they can be compared on /tipe; a bare subset
- * filter would hoist those onto every page load to serve one route.
+ * And only the families the site chrome actually sets, by name. A bare subset
+ * filter would match every face that happens to be a latin variable font,
+ * including any that are declared for a route that is not the one being viewed.
  *
  * crossorigin is not optional. Fonts are always fetched in CORS mode, so a
  * preload without it does not match the later request and the browser downloads
