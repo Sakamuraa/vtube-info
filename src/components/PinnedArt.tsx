@@ -33,7 +33,7 @@ export function PinnedArt() {
   return (
     <section className="mx-auto max-w-6xl px-5 pt-10 sm:px-8">
       <a
-        href={`${NAPLIVE}/art`}
+        href={`${NAPLIVE}/media`}
         target="_blank"
         rel="noopener noreferrer"
         className="group block rounded-3xl border border-[var(--line)] bg-[color-mix(in_oklab,var(--surface-deep)_40%,transparent)] p-5 transition-colors hover:border-[var(--accent)] sm:p-6"
