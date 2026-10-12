@@ -6,6 +6,7 @@ import { Home } from "./components/Home";
 import { Kreator } from "./components/Kreator";
 import { Nav } from "./components/Nav";
 import { StreamPage } from "./components/StreamPage";
+import { Submit } from "./components/Submit";
 import { Tentang } from "./components/Tentang";
 import { mountPageMotion } from "./motion";
 
@@ -50,6 +51,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/kreator" element={<Kreator />} />
+            <Route path="/submit" element={<Submit />} />
             <Route path="/tentang" element={<Tentang />} />
             <Route path="/streams" element={<StreamPage />} />
 

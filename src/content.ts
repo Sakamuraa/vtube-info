@@ -64,6 +64,7 @@ export const developer = {
 export const navigation = [
   { label: "Beranda", href: "/" },
   { label: "Kreator", href: "/kreator" },
+  { label: "Request", href: "/submit" },
   { label: "Tentang", href: "/tentang" },
 ];
 
