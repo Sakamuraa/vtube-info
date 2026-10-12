@@ -27,6 +27,7 @@ import { Link } from "react-router-dom";
 import { creatorCount, creators, site, type Creator } from "../content";
 import { LiveNumber } from "../LiveNumber";
 import { useLive, type LiveEntry } from "../useLive";
+import { PinnedArt } from "./PinnedArt";
 
 /**
  * How many creators the front page shows.
@@ -93,6 +94,7 @@ export function Home() {
 
   return (
     <>
+      <PinnedArt />
       {/*
         Masthead. Full width, ruled top and bottom, and the headline is set
         against the measure rather than centred -- a broadsheet masthead, not a

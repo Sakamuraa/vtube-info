@@ -94,6 +94,7 @@ type ContentPayload = {
     { slug: "kanata-reina", origin: "https://kanatareina.vtube-info.xyz" },
 { slug: "lunie", origin: "https://lunie.vtube-info.xyz" },
   { slug: "astelica-kasdea", origin: "https://kasdea.vtube-info.xyz" },
+  { slug: "naplive", origin: "https://naplive.vtube-info.xyz" },
 ];
 
 /**

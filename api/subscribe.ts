@@ -31,6 +31,7 @@ const SLUGS = new Set([
   "kanata-reina",
   "lunie",
   "astelica-kasdea",
+  "naplive",
 ]);
 
 function cors(res: Res, origin: string | undefined) {

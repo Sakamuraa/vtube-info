@@ -271,6 +271,28 @@ export const creators: Creator[] = [
      */
     tags: ["#AstelicaKasdea", "#LicaLive", "#kasdeart", "#utanodea", "#kasdeakocak"],
   },
+  {
+    slug: "naplive",
+    name: "NapLive",
+    role: "Streamer & artist",
+    /*
+     * No "Live 2D": nothing on the channels or the X bio states a rig, and this
+     * person is as much an artist as a streamer. The format line carries only
+     * what the channels show -- livestreams and art.
+     */
+    format: "ID · Livestream & art",
+    blurb:
+      "Tiga channel YouTube — NapKing untuk upload, NapLive untuk livestream, dan Nepnep untuk stream & klip — plus art yang diposting langsung di X.",
+    href: "https://naplive.vtube-info.xyz",
+    avatar: "https://naplive.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "NapLive", href: "https://www.youtube.com/@naplive7" },
+      { label: "NapKing", href: "https://www.youtube.com/@napking7" },
+      { label: "Nepnep", href: "https://www.youtube.com/@nepnep7" },
+      { label: "X", href: "https://x.com/Alfachri9" },
+    ],
+    tags: ["#NapLive"],
+  },
 ];
 
 /**
