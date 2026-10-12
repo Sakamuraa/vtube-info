@@ -297,6 +297,82 @@ export const creators: Creator[] = [
 ];
 
 /**
+ * Is this request already served?
+ *
+ * The /submit form reads this: a creator already in the index does not need
+ * another request, so the form says so and blocks the send instead of queuing a
+ * duplicate row in Sam's sheet.
+ *
+ * Matched on the YouTube channel URL first -- handles and channel ids, after
+ * normalising the shapes people actually paste -- and then on the display name,
+ * exact and case-insensitive. Exact on purpose: a fuzzy name match would block
+ * requests for people who merely sound similar, and a blocked request for the
+ * wrong person is worse than a duplicate row.
+ *
+ * Video links (watch, shorts, youtu.be) do not match. Resolving a video to its
+ * channel needs a network call this page does not make; picks from the dropdown
+ * always carry the channel URL, which is the path that matters.
+ */
+export function findServedCreator(name: string, youtube: string): Creator | null {
+  const key = channelKey(youtube);
+  if (key) {
+    for (const creator of creators) {
+      for (const channel of creator.channels) {
+        if (channelKey(channel.href) === key) return creator;
+      }
+    }
+  }
+
+  const wanted = name.trim().toLowerCase().replace(/\s+/g, " ");
+  if (wanted.length < 2) return null;
+  for (const creator of creators) {
+    if (creator.name.toLowerCase().replace(/\s+/g, " ") === wanted) return creator;
+  }
+  return null;
+}
+
+/**
+ * One comparable key for a YouTube URL, or null if it does not name a channel.
+ *
+ * `@handle`, `/channel/UC…` and the legacy `/c/` + `/user/` shapes all collapse
+ * to one lowercase key, so `youtube.com/@Naplive7/`, `m.youtube.com/@naplive7`
+ * and a hand-pasted link with extra path segments compare equal. Video URLs
+ * return null -- see findServedCreator above.
+ */
+function channelKey(url: string): string | null {
+  let parsed: URL;
+  try {
+    parsed = new URL(url.trim());
+  } catch {
+    return null;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+
+  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+  if (host === "youtu.be") {
+    // A short link is a video, never a channel.
+    return null;
+  }
+  if (host !== "youtube.com" && host !== "m.youtube.com" && host !== "music.youtube.com") {
+    return null;
+  }
+
+  const path = parsed.pathname;
+  if (/^\/(?:shorts|live|embed|v)\//.test(path)) return null;
+
+  const handle = path.match(/^\/@([\w.-]{2,})/);
+  if (handle) return `@${handle[1].toLowerCase()}`;
+
+  const channel = path.match(/^\/channel\/([\w-]{2,})/);
+  if (channel) return `id:${channel[1].toLowerCase()}`;
+
+  const legacy = path.match(/^\/(?:c|user)\/([\w.-]{2,})/);
+  if (legacy) return `@${legacy[1].toLowerCase()}`;
+
+  return null;
+}
+
+/**
  * Counts, spelled out in Indonesian.
  *
  * Every count in the copy is written through this rather than typed into a

@@ -14,10 +14,24 @@
  * not in the dropdown the visitor pastes a link into the second field by
  * hand, which is the whole form without the dropdown.
  *
+ * A creator already in the index does not need a request, so the form blocks
+ * one: findServedCreator() in src/content.ts matches the current name and link
+ * against the creators array -- the same array /kreator renders -- and the
+ * visitor gets a note pointing there instead of a queued duplicate row.
+ *
  * `data-reveal` is read by src/motion.ts.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { ArrowRight, CheckCircle, Spinner, WarningCircle } from "@phosphor-icons/react";
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  CheckCircle,
+  Info,
+  Spinner,
+  WarningCircle,
+} from "@phosphor-icons/react";
+
+import { findServedCreator } from "../content";
 
 type SendState = "idle" | "sending" | "done";
 
@@ -183,9 +197,19 @@ export function Submit() {
     }
   }
 
+  /*
+   * Already in the index, rechecked on every keystroke against the live
+   * creators array -- so adding a creator removes them from the form's
+   * acceptance without this file being touched.
+   */
+  const served = findServedCreator(name, youtube);
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (state === "sending") return;
+    // The button is already disabled while blocked; this is the belt to that
+    // pair of braces, so a stale render can never queue a duplicate row.
+    if (served) return;
 
     setError(null);
     if (!name.trim() || !youtube.trim() || !requestedBy.trim()) {
@@ -253,13 +277,15 @@ export function Submit() {
     setState("idle");
   }
 
-  const nameHint = searching
-    ? "Nyari channel di YouTube…"
-    : open
-      ? "Pilih channel-nya dari daftar — link-nya keisi sendiri."
-      : searched && suggests.length === 0
-        ? "Belum ketemu channel-nya. Tempel link YouTube-nya manual di kolom bawah."
-        : "Ketik nama VTuber-nya, lalu pilih channel-nya dari daftar.";
+  const nameHint = served
+    ? `${served.name} sudah ada di indeks — jadi nggak perlu request.`
+    : searching
+      ? "Nyari channel di YouTube…"
+      : open
+        ? "Pilih channel-nya dari daftar — link-nya keisi sendiri."
+        : searched && suggests.length === 0
+          ? "Belum ketemu channel-nya. Tempel link YouTube-nya manual di kolom bawah."
+          : "Ketik nama VTuber-nya, lalu pilih channel-nya dari daftar.";
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-16 sm:px-8 md:py-24">
@@ -467,9 +493,35 @@ export function Submit() {
               className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-3"
               aria-live="polite"
             >
+              {/* Blocked, so the note sits where the send would have happened:
+                  same slot as the error line, same visual family as the success
+                  card, and `status` rather than `alert` -- nothing failed. */}
+              {served && (
+                <div
+                  role="status"
+                  className="w-full rounded-2xl border border-[var(--accent)] bg-[color-mix(in_oklab,var(--color-butter)_12%,transparent)] p-4 sm:p-5"
+                >
+                  <p className="flex items-center gap-2 text-sm font-semibold text-[var(--text)]">
+                    <Info size={16} weight="fill" className="text-[var(--accent)]" aria-hidden="true" />
+                    {served.name} sudah ada di indeks
+                  </p>
+                  <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
+                    Nggak perlu request lagi — halamannya sudah dilayani di sini.
+                    Lihat daftarnya di{" "}
+                    <Link
+                      to="/kreator"
+                      className="font-medium text-[var(--text)] underline-offset-4 transition-colors hover:text-[var(--accent)] hover:underline"
+                    >
+                      /kreator
+                    </Link>
+                    .
+                  </p>
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={state === "sending"}
+                disabled={state === "sending" || Boolean(served)}
                 className="inline-flex min-h-11 items-center gap-2 rounded-pill bg-[var(--accent)] px-7 py-3 text-sm font-semibold text-[var(--surface)] transition-transform hover:opacity-90 active:translate-y-px disabled:opacity-60"
               >
                 {state === "sending" ? (
