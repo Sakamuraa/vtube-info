@@ -40,7 +40,13 @@ function cors(res: Res, origin: string | undefined) {
 function makeRedis(): Redis | null {
   const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
-  return url && token ? new Redis({ url, token }) : null;
+  // Must be the REST endpoint (https://), not the rediss:// TCP string.
+  if (!url || !token || !/^https:\/\//i.test(url)) return null;
+  try {
+    return new Redis({ url, token });
+  } catch {
+    return null;
+  }
 }
 
 export default async function handler(req: Req, res: Res) {
