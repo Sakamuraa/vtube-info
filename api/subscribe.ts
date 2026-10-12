@@ -41,6 +41,13 @@ function cors(res: Res, origin: string | undefined) {
   res.setHeader("Vary", "Origin");
 }
 
+/** Build a Redis client from either Upstash-direct or Vercel-KV env names. */
+function makeRedis(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return url && token ? new Redis({ url, token }) : null;
+}
+
 export default async function handler(req: Req, res: Res) {
   cors(res, req.headers?.origin);
   if (req.method === "OPTIONS") {
@@ -62,13 +69,16 @@ export default async function handler(req: Req, res: Res) {
     return;
   }
 
+  const redis = makeRedis();
+  if (!redis) {
+    res.status(503).json({ error: "store-unavailable" });
+    return;
+  }
   try {
-    const redis = Redis.fromEnv();
     await redis.sadd(`subs:${slug}`, sub as never);
     res.status(200).json({ ok: true });
   } catch {
-    // Store not configured yet, or unreachable. The button reports failure.
-    res.status(503).json({ error: "store-unavailable" });
+    res.status(503).json({ error: "store-error" });
   }
 }
 

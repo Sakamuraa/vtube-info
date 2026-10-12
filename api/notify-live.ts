@@ -54,6 +54,13 @@ function readParam(query: Req["query"], key: string): string | undefined {
   return Array.isArray(v) ? v[0] : v;
 }
 
+/** Build a Redis client from either Upstash-direct or Vercel-KV env names. */
+function makeRedis(): Redis | null {
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
+  return url && token ? new Redis({ url, token }) : null;
+}
+
 export default async function handler(req: Req, res: Res) {
   const secret = process.env.CRON_SECRET;
   if (!secret || readParam(req.query, "secret") !== secret) {
@@ -61,16 +68,24 @@ export default async function handler(req: Req, res: Res) {
     return;
   }
 
-  let redis: Redis;
+  const haveUpstash = Boolean(
+    (process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL) &&
+      (process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN),
+  );
+  const haveVapid = Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
+  const redis = makeRedis();
+  if (!redis || !haveVapid) {
+    res.status(503).json({ error: "not-configured", haveUpstash, haveVapid });
+    return;
+  }
   try {
-    redis = Redis.fromEnv();
     webpush.setVapidDetails(
       process.env.VAPID_SUBJECT || "mailto:admin@vtube-info.xyz",
       process.env.VAPID_PUBLIC_KEY || "",
       process.env.VAPID_PRIVATE_KEY || "",
     );
   } catch {
-    res.status(503).json({ error: "not-configured" });
+    res.status(503).json({ error: "vapid-invalid" });
     return;
   }
 
