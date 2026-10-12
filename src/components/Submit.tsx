@@ -1,17 +1,18 @@
 /**
  * Request a VTuber.
  *
- * A visitor fills four fields; the row lands in Sam's Google Sheet through
- * /api/submit (which talks to an Apps Script the sheet owns -- see that file).
- * The sheet's own "No." column is assigned by the script on append, so this
- * form never asks a visitor to invent a number.
+ * A visitor fills four fields, in the order the sheet's columns run; the row
+ * lands in Sam's Google Sheet through /api/submit (which talks to an Apps
+ * Script the sheet owns -- see that file). The sheet's own "No." column is
+ * assigned by the script on append, so this form never asks a visitor to
+ * invent a number.
  *
- * The YouTube field is the one piece of plumbing: paste a link and the name
- * field fills itself from the channel behind that link (GET /api/submit?
- * resolve=). It only ever fills a name the visitor has not typed -- once the
- * field is hand-edited the fetch stays out of it, and clearing it re-arms the
- * autofill. When the lookup fails the form is simply the manual form it was
- * before, with no error shown for something the visitor did not do wrong.
+ * The name field is the one piece of plumbing: type a VTuber's name and a
+ * dropdown of matching YouTube channels appears (GET /api/submit?q=). Pick
+ * one and the link fills itself with that channel's URL. Nothing works the
+ * other way round -- a link never guesses a name -- and when the channel is
+ * not in the dropdown the visitor pastes a link into the second field by
+ * hand, which is the whole form without the dropdown.
  *
  * `data-reveal` is read by src/motion.ts.
  */
@@ -19,6 +20,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, CheckCircle, Spinner, WarningCircle } from "@phosphor-icons/react";
 
 type SendState = "idle" | "sending" | "done";
+
+type Suggest = { name: string; url: string; avatar?: string; subs?: string };
 
 const FIELD =
   "mt-2 w-full rounded-2xl border border-[var(--line)] bg-[var(--surface-deep)] px-4 py-3 text-base text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]";
@@ -45,70 +48,140 @@ export function Submit() {
   const [error, setError] = useState<string | null>(null);
   const [queuedNo, setQueuedNo] = useState<number | null>(null);
 
-  const [resolving, setResolving] = useState(false);
-  const [resolved, setResolved] = useState(false);
-
-  // Whether the visitor has typed in the name field by hand. The autofill
-  // writes only while this is false, so it can never clobber a real answer.
-  const nameTouched = useRef(false);
-  // What autofill last wrote, so a newer lookup may replace its own value
-  // (and only its own) when the link changes.
-  const autoName = useRef<string | null>(null);
-  // The current name, mirrored into a ref from an effect so the lookup below
-  // can read it without listing it as a dependency -- listing it would restart
-  // the debounce on every keystroke, and on the autofill's own write.
-  const nameRef = useRef(name);
-  useEffect(() => {
-    nameRef.current = name;
-  }, [name]);
+  const [suggests, setSuggests] = useState<Suggest[]>([]);
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const [searching, setSearching] = useState(false);
+  /** Has the visitor searched at least once for the current name? */
+  const [searched, setSearched] = useState(false);
 
   /*
-   * Debounced name lookup. 700ms of quiet on the field is the trigger, one
-   * request per pause rather than one per keystroke, and each new run aborts
-   * the previous one so a slow answer can never land after a newer one and
-   * write a stale name.
+   * True while the link in the field was put there by a dropdown pick.
+   *
+   * It is a ref, not state, for two reasons: nothing on screen depends on it,
+   * and the search effect below must be able to read it without listing it as
+   * a dependency -- which would re-run the search on the very write the pick
+   * just performed. Typing a different name clears the pick's link, because a
+   * link kept next to a changed name is a link to the wrong person; a link the
+   * visitor pasted themselves is theirs and is left alone.
+   */
+  const autoLink = useRef(false);
+
+  /*
+   * Debounced channel search. 400ms of quiet on the name field is the
+   * trigger, one request per pause rather than one per keystroke, and each
+   * new run aborts the previous one so a slow answer can never open the
+   * dropdown with results for an older query.
+   *
+   * A pick writes the name programmatically, which does not fire onChange but
+   * does change this effect's dependency -- so the effect checks autoLink and
+   * returns without searching when the change came from a pick.
    */
   useEffect(() => {
-    const link = youtube.trim();
-    if (link.length < 8) return;
+    const query = name.trim();
+    if (query.length < 2 || autoLink.current) {
+      setSuggests([]);
+      setOpen(false);
+      setActiveIdx(-1);
+      setSearching(false);
+      return;
+    }
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
-      setResolving(true);
-      let fetched = "";
+      setSearching(true);
       try {
-        const endpoint = `/api/submit?resolve=${encodeURIComponent(link)}`;
+        const endpoint = `/api/submit?q=${encodeURIComponent(query)}`;
         const response = await fetch(endpoint, {
           signal: controller.signal,
           headers: { accept: "application/json" },
         });
         const payload = (response.ok
           ? await response.json()
-          : null) as { name?: string | null } | null;
-        fetched = typeof payload?.name === "string" ? payload.name.trim() : "";
+          : null) as { results?: Suggest[] } | null;
+        const results = Array.isArray(payload?.results) ? payload.results : [];
+        setSuggests(results);
+        setOpen(results.length > 0);
+        setActiveIdx(results.length > 0 ? 0 : -1);
+        setSearched(true);
       } catch {
-        // Offline, aborted, or a failed lookup: the manual form stands.
-        fetched = "";
+        // Offline or aborted: the manual form stands.
+        setSuggests([]);
+        setOpen(false);
+        setActiveIdx(-1);
       }
-
-      const current = nameRef.current;
-      const writable =
-        fetched.length > 0 &&
-        !nameTouched.current &&
-        (current === "" || current === autoName.current);
-      if (writable) {
-        setName(fetched);
-        autoName.current = fetched;
-      }
-      setResolved(writable);
-      setResolving(false);
-    }, 700);
+      setSearching(false);
+    }, 400);
 
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [youtube]);
+  }, [name]);
+
+  function choose(result: Suggest) {
+    autoLink.current = true;
+    setName(result.name);
+    setYoutube(result.url);
+    setSuggests([]);
+    setOpen(false);
+    setActiveIdx(-1);
+    setSearching(false);
+  }
+
+  function onNameChange(value: string) {
+    // Any keystroke here means the visitor is no longer picking from the
+    // dropdown, so a link the dropdown placed belongs to a name that is
+    // being edited away -- take it back out.
+    if (autoLink.current) {
+      autoLink.current = false;
+      setYoutube("");
+    }
+    setName(value);
+    setSearched(false);
+  }
+
+  function onYoutubeChange(value: string) {
+    setYoutube(value);
+    // A hand-edited link is the visitor's own; stop the name field from
+    // treating it as pick-owned.
+    autoLink.current = false;
+  }
+
+  function onNameKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Escape") {
+      if (open) {
+        event.preventDefault();
+        setOpen(false);
+        setActiveIdx(-1);
+      }
+      return;
+    }
+    if (event.key === "ArrowDown" && suggests.length > 0) {
+      event.preventDefault();
+      if (!open) {
+        setOpen(true);
+        setActiveIdx(0);
+      } else {
+        setActiveIdx((i) => (i + 1) % suggests.length);
+      }
+      return;
+    }
+    if (event.key === "ArrowUp" && open && suggests.length > 0) {
+      event.preventDefault();
+      setActiveIdx((i) => (i <= 0 ? suggests.length - 1 : i - 1));
+      return;
+    }
+    // Enter picks the highlighted row when the dropdown is up; with it closed
+    // it falls through and submits the form like any other field.
+    if (event.key === "Enter" && open && activeIdx >= 0) {
+      const picked = suggests[activeIdx];
+      if (picked) {
+        event.preventDefault();
+        choose(picked);
+      }
+    }
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -120,7 +193,7 @@ export function Submit() {
         !name.trim()
           ? ERROR_COPY["name-required"]
           : !youtube.trim()
-            ? "Link YouTube-nya belum diisi."
+            ? "Link YouTube-nya belum diisi. Pilih dari daftar atau tempel link-nya."
             : ERROR_COPY["requested-by-required"],
       );
       return;
@@ -165,17 +238,28 @@ export function Submit() {
   }
 
   function reset() {
-    nameTouched.current = false;
-    autoName.current = null;
+    autoLink.current = false;
     setName("");
     setYoutube("");
     setFan("");
     setRequestedBy("");
-    setResolved(false);
+    setSuggests([]);
+    setOpen(false);
+    setActiveIdx(-1);
+    setSearching(false);
+    setSearched(false);
     setQueuedNo(null);
     setError(null);
     setState("idle");
   }
+
+  const nameHint = searching
+    ? "Nyari channel di YouTube…"
+    : open
+      ? "Pilih channel-nya dari daftar — link-nya keisi sendiri."
+      : searched && suggests.length === 0
+        ? "Belum ketemu channel-nya. Tempel link YouTube-nya manual di kolom bawah."
+        : "Ketik nama VTuber-nya, lalu pilih channel-nya dari daftar.";
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-16 sm:px-8 md:py-24">
@@ -227,9 +311,93 @@ export function Submit() {
             className="rounded-3xl border border-[var(--line)] bg-[var(--surface-deep)] p-6 sm:p-8"
           >
             <div className="grid gap-6">
+              <div className="relative">
+                <label className={LABEL} htmlFor="submit-name">
+                  Nama VTuber <span className="text-[var(--accent)]">*</span>
+                </label>
+                <input
+                  id="submit-name"
+                  name="name"
+                  type="text"
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={open}
+                  aria-controls="submit-name-listbox"
+                  aria-autocomplete="list"
+                  aria-activedescendant={
+                    open && activeIdx >= 0 ? `submit-name-opt-${activeIdx}` : undefined
+                  }
+                  aria-describedby="submit-name-hint"
+                  placeholder="Ketik nama channel-nya"
+                  value={name}
+                  onChange={(event) => onNameChange(event.target.value)}
+                  onKeyDown={onNameKeyDown}
+                  onBlur={() => {
+                    setOpen(false);
+                    setActiveIdx(-1);
+                  }}
+                  className={FIELD}
+                />
+                <p id="submit-name-hint" className={HINT} aria-live="polite">
+                  {nameHint}
+                </p>
+
+                {open && suggests.length > 0 && (
+                  <ul
+                    id="submit-name-listbox"
+                    role="listbox"
+                    aria-label="Channel YouTube yang cocok"
+                    className="absolute left-0 right-0 top-full z-20 mt-1 max-h-72 overflow-y-auto rounded-2xl border border-[var(--line)] bg-[var(--surface)] py-1 shadow-xl"
+                  >
+                    {suggests.map((suggest, index) => (
+                      <li
+                        key={suggest.url}
+                        id={`submit-name-opt-${index}`}
+                        role="option"
+                        aria-selected={index === activeIdx}
+                        onMouseDown={(event) => {
+                          // Keep focus in the field so the pick's blur logic
+                          // never races the click that performs it.
+                          event.preventDefault();
+                        }}
+                        onClick={() => choose(suggest)}
+                        onMouseEnter={() => setActiveIdx(index)}
+                        className={`flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors ${
+                          index === activeIdx
+                            ? "bg-[color-mix(in_oklab,var(--accent)_12%,transparent)]"
+                            : ""
+                        }`}
+                      >
+                        {suggest.avatar ? (
+                          <img
+                            src={suggest.avatar}
+                            alt=""
+                            loading="lazy"
+                            className="size-9 shrink-0 rounded-full bg-[var(--surface-deep)] object-cover"
+                            onError={(event) => {
+                              event.currentTarget.style.display = "none";
+                            }}
+                          />
+                        ) : null}
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-[var(--text)]">
+                            {suggest.name}
+                          </span>
+                          {suggest.subs ? (
+                            <span className="block truncate text-xs text-[var(--text-muted)]">
+                              {suggest.subs}
+                            </span>
+                          ) : null}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
               <div>
                 <label className={LABEL} htmlFor="submit-youtube">
-                  Link YouTube <span className="text-[var(--accent)]">*</span>
+                  Youtube Link <span className="text-[var(--accent)]">*</span>
                 </label>
                 <input
                   id="submit-youtube"
@@ -239,46 +407,14 @@ export function Submit() {
                   autoComplete="url"
                   placeholder="https://www.youtube.com/@channel"
                   value={youtube}
-                  onChange={(event) => {
-                    setYoutube(event.target.value);
-                    // Clearing the link clears the lookup's own status too,
-                    // from the event rather than from the effect.
-                    if (event.target.value.trim().length < 8) {
-                      setResolving(false);
-                      setResolved(false);
-                    }
-                  }}
+                  onChange={(event) => onYoutubeChange(event.target.value)}
                   className={FIELD}
                   aria-describedby="submit-youtube-hint"
                 />
-                <p id="submit-youtube-hint" className={HINT} aria-live="polite">
-                  {resolving
-                    ? "Mengambil nama channel dari link…"
-                    : resolved
-                      ? "Nama di bawah keisi otomatis dari channel. Ubah kalau keliru."
-                      : "Channel atau video bebas — nama VTuber-nya keisi otomatis kalau bisa."}
+                <p id="submit-youtube-hint" className={HINT}>
+                  Keisi sendiri kalau nama-nya dipilih dari daftar. Nggak ketemu
+                  di daftar? Tempel channel atau video link-nya di sini.
                 </p>
-              </div>
-
-              <div>
-                <label className={LABEL} htmlFor="submit-name">
-                  Nama VTuber <span className="text-[var(--accent)]">*</span>
-                </label>
-                <input
-                  id="submit-name"
-                  name="name"
-                  type="text"
-                  autoComplete="off"
-                  placeholder="Nama channel atau karakternya"
-                  value={name}
-                  onChange={(event) => {
-                    // An empty field re-arms the autofill; anything else the
-                    // visitor types is theirs and is left alone.
-                    nameTouched.current = event.target.value.trim().length > 0;
-                    setName(event.target.value);
-                  }}
-                  className={FIELD}
-                />
               </div>
 
               <div>
