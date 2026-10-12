@@ -17,9 +17,11 @@
  *   - index (numbered ruled rows)
  *   - closing band (centred statement)
  *
- * Motion hooks (`data-hero-*`, `data-reveal`, `data-index-row`) are read by
- * src/motion.ts. They are data attributes because they describe behaviour, not
- * appearance.
+ * Motion hooks (`data-hero-*`, `data-reveal`, `data-index-row`, `data-parallax`,
+ * `data-scroll-x`) are read by src/motion.ts. They are data attributes because
+ * they describe behaviour, not appearance: `data-parallax` on an asset means it
+ * drifts against the page while its row crosses the viewport, `data-scroll-x`
+ * on display type means it slides across its own transit.
  */
 import { ArrowRight } from "@phosphor-icons/react";
 import { Link } from "react-router-dom";
@@ -168,7 +170,10 @@ export function Home() {
       */}
       <section className="mx-auto max-w-6xl px-5 pb-24 pt-20 sm:px-8" data-reveal>
         <div className="flex flex-wrap items-baseline justify-between gap-4">
-          <h2 className="font-display text-3xl font-semibold sm:text-4xl">
+          {/* data-scroll-x: the heading slides across its transit in
+              src/motion.ts's drift layer, so display type moves while the page
+              is still moving past it. */}
+          <h2 className="font-display text-3xl font-semibold sm:text-4xl" data-scroll-x="18">
             Kreator
           </h2>
           <p className="text-sm text-[var(--text-muted)]">
@@ -189,7 +194,9 @@ export function Home() {
                   {String(i + 1).padStart(2, "0")}
                 </span>
 
-                {/* Their own og:image, not a generic placeholder. */}
+                {/* Their own og:image, not a generic placeholder. data-parallax
+                    is read by src/motion.ts: the avatar drifts against its row
+                    while the row crosses the viewport. */}
                 <img
                   src={creator.avatar}
                   alt=""
@@ -197,6 +204,7 @@ export function Home() {
                   loading="lazy"
                   width={96}
                   height={96}
+                  data-parallax="10"
                 />
 
                 <span className="min-w-0">
@@ -262,7 +270,10 @@ export function Home() {
           what keeps it from reading as another layout family. */}
       <section className="border-t border-[var(--line)] py-24" data-reveal>
         <div className="mx-auto max-w-3xl px-5 text-center sm:px-8">
-          <p className="font-display text-3xl font-medium leading-snug sm:text-4xl">
+          <p
+            className="font-display text-3xl font-medium leading-snug sm:text-4xl"
+            data-scroll-x="22"
+          >
             Setiap kreator punya situsnya sendiri. Halaman ini cuma indeksnya.
           </p>
           <p className="mt-6 text-sm leading-relaxed text-[var(--text-muted)]">
@@ -324,6 +335,7 @@ function OnLive({ rows }: { rows: { entry: LiveEntry; creator: Creator }[] }) {
                 loading="lazy"
                 width={72}
                 height={72}
+                data-parallax="8"
               />
 
               <span className="min-w-0">

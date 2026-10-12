@@ -23,10 +23,25 @@
  * the regularity that makes a stagger look mechanical, and `grid`/`axis` order by
  * position on a 2D field.
  *
- * `onScroll({ sync: true })` ties an animation's progress to an element's position
- * in the viewport. This replaced the IntersectionObserver: it is not a "fire once"
- * trigger bolted beside a tween, it is the tween itself, scrubbed by scroll
- * position, with enter/leave thresholds.
+ * Anything tied to scroll is tied through `autoplay: onScroll({...})`. That is
+ * not one style among several -- it is the only way a ScrollObserver controls
+ * anything: `onScroll()` returns an observer linked to nothing, and handing it
+ * to an animation's `autoplay` is what calls `.link()` under the hood. A bare
+ * `onScroll()` sitting next to an `animate()` call creates a working observer
+ * and a free-running animation, and the page plays every "scroll reveal" at
+ * load where nobody can see it. That is how this file behaved for as long as
+ * it existed, and why scrolling used to do nothing.
+ *
+ * Two layers use it now:
+ *   - Reveals play their tween once when the section enters from below
+ *     (`enter: 'bottom top'`, `repeat: false`). The tuned durations and
+ *     staggers still mean something here, because a one-shot tween keeps its
+ *     timeline.
+ *   - Drift is scrubbed by scroll position (`sync: true`): the animation's
+ *     progress IS the element's position between its enter and leave
+ *     thresholds. This is the layer where assets move *while* you scroll --
+ *     avatars passing at a different rate than the page, the masthead lagging
+ *     as it leaves, display text sliding across its own transit.
  *
  * Scope ownership: one scope per route, reverted on unmount. revert() unwinds
  * every animation the scope created and strips the inline styles it applied,
@@ -72,6 +87,8 @@ const ANIMATED = [
   "[data-stagger] > *",
   "[data-index-row]",
   "[data-index-arrow]",
+  "[data-parallax]",
+  "[data-scroll-x]",
 ].join(", ");
 
 /**
@@ -82,6 +99,9 @@ const ANIMATED = [
  * arrives word by word, then the foot. The words use a grid-free stagger with a
  * small jitter, because a perfectly even word cascade is the most recognisable
  * motion template there is.
+ *
+ * This one is not scroll-gated: the masthead is the first thing on the page and
+ * should already be arriving when the visitor gets there.
  */
 function mastheadSequence(isSmall: boolean) {
   const title = document.querySelector<HTMLElement>("[data-hero-title]");
@@ -135,13 +155,14 @@ function mastheadSequence(isSmall: boolean) {
 }
 
 /**
- * Scroll-linked reveals.
+ * Scroll-triggered reveals.
  *
- * Each target gets its own ScrollObserver synced to its own animation, so the
- * tween's progress is the element's position in the viewport rather than a boolean
- * that fired once. `enter: '15%'` means nothing has begun until the element is a
- * sixth of the way into the viewport, which stops sections snapping in while they
- * are still below the fold.
+ * Each animation is handed its own ScrollObserver through `autoplay`, so the
+ * tween plays when -- and only when -- its section crosses into view from
+ * below. `enter: 'bottom top'` is the threshold shorthand for "the section's top
+ * edge meets the viewport's bottom edge", which is the first moment any of it
+ * is on screen; `repeat: false` keeps a section that has already arrived from
+ * replaying itself when it is scrolled back past.
  */
 function scrollReveals(host: HTMLElement, isSmall: boolean, isLarge: boolean) {
   for (const el of host.querySelectorAll<HTMLElement>("[data-reveal]")) {
@@ -150,16 +171,11 @@ function scrollReveals(host: HTMLElement, isSmall: boolean, isLarge: boolean) {
       translateY: [24, 0],
       duration: 1000,
       delay: stagger(isSmall ? 70 : 110, { start: 60 }),
-    });
-
-    onScroll({
-      target: el,
-      enter: "15%",
-      // Leaving resets it, entering replays it. Scrolling back up does not
-      // restart sections already read, because `repeat` stays false.
-      leave: "bottom-=8%",
-      sync: true,
-      repeat: false,
+      autoplay: onScroll({
+        target: el,
+        enter: "bottom top",
+        repeat: false,
+      }),
     });
   }
 
@@ -178,9 +194,12 @@ function scrollReveals(host: HTMLElement, isSmall: boolean, isLarge: boolean) {
         // small enough not to read as random.
         jitter: isLarge ? 45 : 0,
       }),
+      autoplay: onScroll({
+        target: group,
+        enter: "bottom top",
+        repeat: false,
+      }),
     });
-
-    onScroll({ target: group, enter: "12%", leave: "bottom-=8%", sync: true });
   }
 
   /*
@@ -197,12 +216,11 @@ function scrollReveals(host: HTMLElement, isSmall: boolean, isLarge: boolean) {
       translateX: [-26, 0],
       duration: 950,
       delay: stagger(140, { start: 120, from: "first" }),
-    });
-    onScroll({
-      target: rows[0].parentElement ?? rows[0],
-      enter: "15%",
-      leave: "bottom-=6%",
-      sync: true,
+      autoplay: onScroll({
+        target: rows[0].parentElement ?? rows[0],
+        enter: "bottom top",
+        repeat: false,
+      }),
     });
   }
 
@@ -213,12 +231,96 @@ function scrollReveals(host: HTMLElement, isSmall: boolean, isLarge: boolean) {
       translateX: [-12, 0],
       duration: 700,
       delay: stagger(140, { start: 260, from: "first" }),
+      autoplay: onScroll({
+        target: arrows[0].closest("li") ?? arrows[0],
+        enter: "bottom top",
+        repeat: false,
+      }),
     });
-    onScroll({
-      target: arrows[0].closest("li") ?? arrows[0],
-      enter: "15%",
-      leave: "bottom-=6%",
-      sync: true,
+  }
+}
+
+/**
+ * Scroll-scrubbed drift.
+ *
+ * The layer where things move *because* of scrolling, not just when. Every
+ * animation here is linked with `sync: true`, so its progress is the element's
+ * position between two thresholds -- `enter: 'bottom top'` (first pixel on
+ * screen) to `leave: 'top bottom'` (last pixel gone) -- and it runs in both
+ * directions. Ease is linear on purpose: a scrub with an ease rubber-bands
+ * against the scrollbar, and the scrollbar should feel like the playhead.
+ *
+ * Skipped on small screens. A twelve-pixel drift on a 375px-wide row is
+ * invisible, and the observers are not free.
+ */
+function scrollDrift(host: HTMLElement) {
+  /*
+   * Avatars and other list assets.
+   *
+   * `data-parallax="10"` is the travel in pixels: the asset enters its row
+   * 10px low and leaves it 10px high, so while the row holds still the asset
+   * passes through it slightly faster than the page -- the cheapest depth cue
+   * there is, and the reason the lists do not read as flat printed rules.
+   */
+  for (const el of host.querySelectorAll<HTMLElement>("[data-parallax]")) {
+    const travel = Number(el.dataset.parallax) || 10;
+    animate(el, {
+      y: [travel, -travel],
+      ease: "linear",
+      autoplay: onScroll({
+        enter: "bottom top",
+        leave: "top bottom",
+        sync: true,
+      }),
+    });
+  }
+
+  /*
+   * The masthead lag.
+   *
+   * As the hero scrolls out it keeps drifting down inside its own space, so it
+   * leaves slower than the page -- the same parallax a tall object has against
+   * the horizon. The range is centred ([-32, 32] rather than [0, 64]) because
+   * the threshold span starts before the page's own scroll does: the masthead
+   * is already part-way into view at load, and a one-sided range would park it
+   * thirty pixels low before the first scroll pixel moves.
+   *
+   * Transform only, and on a different property from the entrance's
+   * borderTopWidth, so the two never fight over the same inline style.
+   */
+  const masthead = host.querySelector<HTMLElement>("[data-hero-masthead]");
+  if (masthead) {
+    animate(masthead, {
+      y: [-32, 32],
+      ease: "linear",
+      autoplay: onScroll({
+        target: masthead,
+        enter: "bottom top",
+        leave: "top bottom",
+        sync: true,
+      }),
+    });
+  }
+
+  /*
+   * Kinetic display text.
+   *
+   * `data-scroll-x="18"` slides the element 18px left to 18px right across its
+   * transit -- zero at the midpoint, which is where it is read. Applied to
+   * display type only: drifting body copy while someone is trying to read it
+   * is motion sickness, not motion design.
+   */
+  for (const el of host.querySelectorAll<HTMLElement>("[data-scroll-x]")) {
+    const travel = Number(el.dataset.scrollX) || 18;
+    animate(el, {
+      x: [-travel, travel],
+      ease: "linear",
+      autoplay: onScroll({
+        target: el,
+        enter: "bottom top",
+        leave: "top bottom",
+        sync: true,
+      }),
     });
   }
 }
@@ -287,6 +389,7 @@ export function mountPageMotion(host: HTMLElement): () => void {
 
     mastheadSequence(isSmall);
     scrollReveals(host, isSmall, isLarge);
+    if (!isSmall) scrollDrift(host);
     idleLoop();
   });
 

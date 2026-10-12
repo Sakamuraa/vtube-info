@@ -10,7 +10,7 @@
  * Every count in the copy is derived from the creators array, so adding an entry
  * updates the sentence instead of leaving a stale number behind.
  *
- * `data-reveal` and `data-stagger` are read by src/motion.ts.
+ * `data-reveal`, `data-stagger` and `data-parallax` are read by src/motion.ts.
  */
 import { ArrowSquareOut } from "@phosphor-icons/react";
 
@@ -92,6 +92,8 @@ function CreatorCard({ creator, pinned = false }: { creator: Creator; pinned?: b
         </p>
       )}
 
+      {/* data-parallax is read by src/motion.ts: the avatar drifts against
+          its card while the card crosses the viewport. */}
       <img
         src={creator.avatar}
         alt={`Avatar ${creator.name}`}
@@ -101,6 +103,7 @@ function CreatorCard({ creator, pinned = false }: { creator: Creator; pinned?: b
             : "size-28 rounded-pill border border-[var(--line)] object-cover"
         }
         loading="lazy"
+        data-parallax="12"
       />
 
       <h2
