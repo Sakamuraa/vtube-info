@@ -332,6 +332,37 @@ export const creators: Creator[] = [
     ],
     tags: ["#haizeyart", "#merchaizeya"],
   },
+  {
+    slug: "gepigepeng",
+    name: "Gepii Gepeng",
+    role: "Suka yapping",
+    /*
+     * No "Live 2D": her channel description names the character's credits
+     * ("Mama: @lizacchi Papa: @raxgnvindr") but says nothing about a rig, and
+     * "Live 2D" appears nowhere her channel, posts, or titles do. "ID" is the
+     * locale her grids and titles are in; "Yapping & cover" is what her own
+     * description and feed titles call the work -- "Youtuber 1/2 Gepeng yang
+     * suka Yapping", plus karaoke and cover uploads.
+     */
+    format: "ID VTuber · Yapping & cover",
+    /*
+     * First clause is her channel description's own line ("Youtuber 1/2
+     * Gepeng yang suka Yapping💌"). #geppeng is the one tag she names, labelled
+     * "Live:" by her. The channel rows are her channel itself plus the two
+     * links in its own JSON-LD sameAs block (X, Instagram) -- no tip-jar row,
+     * because no donation URL is declared there.
+     */
+    blurb:
+      "Youtuber 1/2 Gepeng yang suka Yapping. Stream, karaoke, dan cover di YouTube, update di X dan Instagram, tag live #geppeng.",
+    href: "https://gepigepeng.vtube-info.xyz",
+    avatar: "https://gepigepeng.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@GepiiGepeng" },
+      { label: "X", href: "https://x.com/gepiigepeng" },
+      { label: "Instagram", href: "https://instagram.com/gepiigepeng" },
+    ],
+    tags: ["#geppeng"],
+  },
 ];
 
 /**
