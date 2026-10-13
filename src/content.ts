@@ -294,6 +294,44 @@ export const creators: Creator[] = [
     ],
     tags: ["#NapLive"],
   },
+  {
+    slug: "zeyayaya",
+    name: "Zeyayaya",
+    role: "Dream keeper",
+    /*
+     * No "Live 2D": her own site's facts grid shipped that cell and the comment
+     * that replaced it records why it came out -- "Live 2D", "rigging" and
+     * "rigged" appear nowhere in her bio, her posts, or her video descriptions.
+     * What the same grid does state is her languages cell, "Indonesia dan
+     * Inggris", which is where "ID/EN" comes from; "Stream & art" is the two
+     * channels' own notes ("Stream & upload" on YouTube, "Update & art" on X).
+     */
+    format: "ID/EN VTuber · Stream & art",
+    /*
+     * First clause is her channel description's own line ("Penjaga mimpimu
+     * agar tidurmu nyenyak"), Pond of Dream the community it names. Both tags
+     * are hers too: #haizeyart is labelled "Art" in her X bio, #merchaizeya is
+     * the tag she asks merch buyers to photo-post with.
+     */
+    blurb:
+      "Penjaga mimpimu di Pond of Dream. Stream dan upload di YouTube, art di X lewat #haizeyart, dan merch dengan #merchaizeya.",
+    href: "https://zeyayaya.vtube-info.xyz",
+    avatar: "https://zeyayaya.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@ZeyaHaize" },
+      { label: "X", href: "https://x.com/zeyahaize" },
+      /*
+       * Trakteer, not Instagram or Pond of Dream. The donation link is the row
+       * a visitor is likeliest to want, and it is one of the "link lainnya"
+       * YouTube itself renders from her channel's JSON-LD sameAs block -- the
+       * same declaration standard as the Instagram and the community invite
+       * beside it, which exist and are correct but are not what this column is
+       * for.
+       */
+      { label: "Trakteer", href: "https://trakteer.id/ZeyaHaize" },
+    ],
+    tags: ["#haizeyart", "#merchaizeya"],
+  },
 ];
 
 /**
