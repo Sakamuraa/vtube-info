@@ -19,6 +19,14 @@
  * against the creators array -- the same array /kreator renders -- and the
  * visitor gets a note pointing there instead of a queued duplicate row.
  *
+ * Above the header sits the announcement: the deadline REQUEST_CLOSE_AT read
+ * as a countdown against the visitor's own clock -- "DD hari HH jam MM menit
+ * SS detik" while more than a day remains, "HH jam MM menit SS detik" below
+ * that -- so the same absolute instant reads correctly in whatever timezone
+ * the page is opened from. Past that instant the banner reports the closure
+ * and the send button stops working; the constant is the only thing to edit
+ * when the window moves.
+ *
  * `data-reveal` is read by src/motion.ts.
  */
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -52,6 +60,39 @@ const ERROR_COPY: Record<string, string> = {
   "sheet-unreachable": "Sheet-nya gagal dihubungi. Coba lagi sebentar lagi.",
 };
 
+/**
+ * When requests close: 18 Oct 2026, midnight UTC.
+ *
+ * An absolute instant rather than a wall-clock string, so every client counts
+ * down against its own clock -- the seconds on screen are the reader's local
+ * time's remaining seconds, and no timezone conversion happens anywhere.
+ */
+const REQUEST_CLOSE_AT = Date.parse("2026-10-18T00:00:00Z");
+
+/**
+ * The countdown line: "04 hari 17 jam 26 menit 09 detik".
+ *
+ * The day unit appears only while more than a day is left -- below 24 hours
+ * the line reads "17 jam 26 menit 09 detik", because a "00 hari" in front of
+ * it is noise the copy never needed. Hours are then the hours inside the day
+ * rather than the total, so nothing ever reads "28 jam". Floored at zero:
+ * `closed` takes over the banner at that point, but a minus sign would be a
+ * worse failure than a frozen zero.
+ */
+function formatRemaining(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const days = Math.floor(total / 86_400);
+  const hours = Math.floor((total % 86_400) / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = total % 60;
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+  return days > 0
+    ? `${String(days).padStart(2, "0")} hari ${hh} jam ${mm} menit ${ss} detik`
+    : `${hh} jam ${mm} menit ${ss} detik`;
+}
+
 export function Submit() {
   const [name, setName] = useState("");
   const [youtube, setYoutube] = useState("");
@@ -68,6 +109,15 @@ export function Submit() {
   const [searching, setSearching] = useState(false);
   /** Has the visitor searched at least once for the current name? */
   const [searched, setSearched] = useState(false);
+
+  /*
+   * The announcement's countdown clock. Each tick re-reads Date.now(), so the
+   * figure is always the reader's own clock measured against
+   * REQUEST_CLOSE_AT -- not a number decremented in memory -- which is what
+   * makes one UTC instant render as correct remaining time in every timezone.
+   */
+  const [now, setNow] = useState(() => Date.now());
+  const closed = REQUEST_CLOSE_AT - now <= 0;
 
   /*
    * True while the link in the field was put there by a dropdown pick.
@@ -132,6 +182,18 @@ export function Submit() {
       controller.abort();
     };
   }, [name]);
+
+  /*
+   * Ticks the countdown while there is still one to count. The interval keys
+   * on `closed` rather than on `now`, so it survives every tick instead of
+   * being torn down and rebuilt once a second; when the window shuts the
+   * effect cleans up and the page stops rendering a number nobody reads.
+   */
+  useEffect(() => {
+    if (closed) return;
+    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [closed]);
 
   function choose(result: Suggest) {
     autoLink.current = true;
@@ -210,6 +272,9 @@ export function Submit() {
     // The button is already disabled while blocked; this is the belt to that
     // pair of braces, so a stale render can never queue a duplicate row.
     if (served) return;
+    // Same belt for the deadline: the window can close between the render
+    // that drew the enabled button and the click that reaches for it.
+    if (closed) return;
 
     setError(null);
     if (!name.trim() || !youtube.trim() || !requestedBy.trim()) {
@@ -289,6 +354,39 @@ export function Submit() {
 
   return (
     <article className="mx-auto max-w-3xl px-5 py-16 sm:px-8 md:py-24">
+      {/*
+        The announcement, above the header because the deadline is the first
+        thing a visitor needs to know about the form. It is deliberately not a
+        live region while ticking -- role="status" on a once-a-second update
+        would have a screen reader recite the seconds forever -- so the role
+        only appears once the sentence has settled into its closed form.
+      */}
+      <div
+        role={closed ? "status" : undefined}
+        data-reveal
+        className="mb-12 rounded-3xl border border-[var(--accent)] bg-[color-mix(in_oklab,var(--color-butter)_12%,transparent)] p-4 sm:p-5"
+      >
+        <p className="flex items-start gap-2 text-sm font-semibold leading-relaxed text-[var(--text)]">
+          <Info
+            size={16}
+            weight="fill"
+            className="mt-0.5 shrink-0 text-[var(--accent)]"
+            aria-hidden="true"
+          />
+          {closed ? (
+            <>Request sudah ditutup, untuk dilakukan sortir dan persetujuan.</>
+          ) : (
+            <>
+              Request akan ditutup{" "}
+              <span className="font-mono tabular-nums text-[var(--accent)]">
+                {formatRemaining(REQUEST_CLOSE_AT - now)}
+              </span>
+              , untuk dilakukan sortir dan persetujuan.
+            </>
+          )}
+        </p>
+      </div>
+
       <header data-reveal>
         <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--accent)]">
           Request
@@ -521,7 +619,7 @@ export function Submit() {
 
               <button
                 type="submit"
-                disabled={state === "sending" || Boolean(served)}
+                disabled={state === "sending" || Boolean(served) || closed}
                 className="inline-flex min-h-11 items-center gap-2 rounded-pill bg-[var(--accent)] px-7 py-3 text-sm font-semibold text-[var(--surface)] transition-transform hover:opacity-90 active:translate-y-px disabled:opacity-60"
               >
                 {state === "sending" ? (
