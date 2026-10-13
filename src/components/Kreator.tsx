@@ -2,8 +2,9 @@
  * The creators index.
  *
  * Same information as the home index, deliberately not the same layout: home is
- * ruled rows, this is a two-column grid with the avatar and the real channel
- * links. A page that lists the same creators twice has to earn the second
+ * ruled rows, this is a grid with the avatar and the real channel links -- two
+ * columns on tablet, four on desktop, so eight cards fill two rows rather than
+ * four. A page that lists the same creators twice has to earn the second
  * view, and repeating the first layout would look like a duplicate rather than
  * a fuller one.
  *
@@ -60,7 +61,10 @@ export function Kreator() {
         </div>
       )}
 
-      <div className="mt-14 grid gap-x-8 gap-y-14 md:grid-cols-2" data-stagger>
+      {/* Two columns at md keeps the card readable at tablet width; four from
+          lg up is the desktop grid. The pinned slot above stays out of both --
+          it is a featured block, not a grid cell. */}
+      <div className="mt-14 grid gap-x-8 gap-y-14 md:grid-cols-2 lg:grid-cols-4" data-stagger>
         {rest.map((creator) => (
           <CreatorCard key={creator.slug} creator={creator} />
         ))}
