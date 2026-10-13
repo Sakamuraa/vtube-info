@@ -2,10 +2,28 @@
  * GET /api/notify-live?secret=...   (cron target)
  *
  * The one sender. An external cron (Vercel Hobby cron is daily-only) hits this
- * every ~1-2 min. It reads who is live from this portal's own /api/live, and for
- * each creator that just went offline->live, pushes a Web Push notification to
- * everyone subscribed to that creator (api/subscribe.ts). Dead subscriptions
- * (410/404) are pruned. Guarded by CRON_SECRET so only the cron can fire it.
+ * every ~1-2 min. It reads who is live from this portal's own /api/live and
+ * pushes a Web Push notification to subscribers of each live creator
+ * (api/subscribe.ts) -- at most once per subscriber per stream. Dead
+ * subscriptions (410/404) are pruned. Guarded by CRON_SECRET so only the cron
+ * can fire it.
+ *
+ * Once per stream, not once per offline->live edge
+ * ------------------------------------------------
+ * An earlier version kept a live:{slug} flag and sent only on the 0->1
+ * transition. That shape is only as stable as the flag, and /api/live reports
+ * an endpoint that times out as unreachable -- which is absent from the live
+ * array, i.e. offline. One flapping pass flipped the flag to 0, the next pass
+ * saw the creator live again, and every subscriber was re-notified for the
+ * stream they were already told about.
+ *
+ * So the record lives against the stream instead: notified:{slug}:{videoId}
+ * holds the endpoints that have already been told, each claimed with SADD
+ * before its send (atomic, so overlapping cron runs cannot both win) and
+ * released if the send fails (so a transient error retries on the next pass
+ * instead of silently swallowing the notification). Unreachable passes change
+ * nothing -- no flag to reset -- and the keys expire a week after the stream
+ * stops being checked.
  */
 import { Redis } from "@upstash/redis";
 import webpush from "web-push";
@@ -113,26 +131,38 @@ export default async function handler(req: Req, res: Res) {
   const sent: Record<string, number> = {};
   for (const slug of SLUGS) {
     const entry = liveMap.get(slug);
-    const isLive = Boolean(entry);
-    const wasLive = (await redis.get(`live:${slug}`)) === "1";
-
-    // Only the offline->live edge pushes; a stream that stays live does not
-    // re-notify, and going offline just resets the flag for next time.
-    if (isLive && !wasLive) {
-      const n = await pushToSlug(redis, slug, entry!);
-      if (n > 0) sent[slug] = n;
-    }
-    await redis.set(`live:${slug}`, isLive ? "1" : "0");
+    // Absent means offline or unreachable this pass -- neither clears anything,
+    // because the once-per-stream record lives with the stream in
+    // notified:{slug}:{videoId} (see the header), not in a flag a failed check
+    // could reset. A stream that is still live simply finds every endpoint
+    // already claimed and skips them.
+    if (!entry) continue;
+    const n = await pushToSlug(redis, slug, entry);
+    if (n > 0) sent[slug] = n;
   }
 
   res.status(200).json({ ok: true, checkedAt: new Date().toISOString(), sent });
 }
 
-/** Push to every subscriber of one slug; prune the dead endpoints. */
+/**
+ * Push to the subscribers of one slug that have not been told about this
+ * stream yet; prune the dead endpoints.
+ *
+ * The dedup set is per stream (videoId), so a new broadcast -- a new video id
+ * -- notifies again while replays of the same one do not. Each member claims
+ * its slot with SADD immediately before sending: SADD is atomic, so two
+ * overlapping cron runs cannot both observe "not yet sent" and both fire, and
+ * a failure releases the claim so the next pass retries rather than losing
+ * the notification to one bad second.
+ */
 async function pushToSlug(redis: Redis, slug: string, entry: LiveEntry): Promise<number> {
   const key = `subs:${slug}`;
   const members = (await redis.smembers(key)) as unknown[];
   if (members.length === 0) return 0;
+
+  // No video id means the instance did not report one; one shared fallback
+  // slot still keeps such a pass to a single send per endpoint.
+  const dedupKey = `notified:${slug}:${entry.videoId || "noid"}`;
 
   const payload = JSON.stringify({
     title: `${NAMES[slug] ?? "Kreator"} lagi live!`,
@@ -149,14 +179,43 @@ async function pushToSlug(redis: Redis, slug: string, entry: LiveEntry): Promise
       await redis.srem(key, member as never);
       continue;
     }
+
+    /*
+     * Identity inside the dedup set: the push endpoint when the object carries
+     * one (it always should), falling back to the stored form so a member that
+     * somehow lacks one still compares equal to itself on the next pass --
+     * the alternative, skipping dedup, is the every-tick spam this exists to
+     * prevent.
+     */
+    const endpoint = (sub as { endpoint?: unknown }).endpoint;
+    const id =
+      typeof endpoint === "string" && endpoint
+        ? endpoint
+        : typeof member === "string"
+          ? member
+          : JSON.stringify(member);
+
+    const claimed = (await redis.sadd(dedupKey, id)) === 1;
+    if (!claimed) continue;
+
     try {
       await webpush.sendNotification(sub as webpush.PushSubscription, payload);
       count++;
     } catch (err) {
+      // Give the slot back: a dead endpoint is removed from the subscriber set
+      // below anyway, and a transient error should try again next pass.
+      await redis.srem(dedupKey, id);
       const code = (err as { statusCode?: number }).statusCode;
       if (code === 404 || code === 410) await redis.srem(key, member as never);
     }
   }
+
+  /*
+   * One week from the last pass that saw this stream live -- refreshed on every
+   * pass while it runs, so the key outlives any broadcast plus retries and
+   * then disappears without a cleanup job.
+   */
+  await redis.expire(dedupKey, 7 * 24 * 60 * 60);
   return count;
 }
 
