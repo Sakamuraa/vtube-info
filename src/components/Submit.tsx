@@ -75,9 +75,13 @@ const REQUEST_CLOSE_AT = Date.parse("2026-10-18T00:00:00Z");
  * The day unit appears only while more than a day is left -- below 24 hours
  * the line reads "17 jam 26 menit 09 detik", because a "00 hari" in front of
  * it is noise the copy never needed. Hours are then the hours inside the day
- * rather than the total, so nothing ever reads "28 jam". Floored at zero:
- * `closed` takes over the banner at that point, but a minus sign would be a
- * worse failure than a frozen zero.
+ * rather than the total, so nothing ever reads "28 jam".
+ *
+ * Each number is tied to its unit with a non-breaking space: the line may
+ * wrap between units ("... 19 menit" / "51 detik") but never inside one --
+ * a "51" orphaned above "detik" is the sort of break that reads as a typo.
+ * Floored at zero: `closed` takes over the banner at that point, but a minus
+ * sign would be a worse failure than a frozen zero.
  */
 function formatRemaining(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -85,12 +89,12 @@ function formatRemaining(ms: number): string {
   const hours = Math.floor((total % 86_400) / 3600);
   const minutes = Math.floor((total % 3600) / 60);
   const seconds = total % 60;
-  const hh = String(hours).padStart(2, "0");
-  const mm = String(minutes).padStart(2, "0");
-  const ss = String(seconds).padStart(2, "0");
-  return days > 0
-    ? `${String(days).padStart(2, "0")} hari ${hh} jam ${mm} menit ${ss} detik`
-    : `${hh} jam ${mm} menit ${ss} detik`;
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${pad(days)} hari`);
+  parts.push(`${pad(hours)} jam`, `${pad(minutes)} menit`, `${pad(seconds)} detik`);
+  return parts.join(" ");
 }
 
 export function Submit() {
@@ -376,13 +380,21 @@ export function Submit() {
           {closed ? (
             <>Request sudah ditutup, untuk dilakukan sortir dan persetujuan.</>
           ) : (
-            <>
+            /*
+             * One span around the whole sentence. The <p> is a flex container,
+             * so a bare text node beside the icon -- and another beside the
+             * countdown -- would each become their own flex item: the sentence
+             * would render as three shrunken columns instead of flowing as
+             * prose. Wrapped, the icon is the only other item and the rest
+             * lays out as ordinary inline text.
+             */
+            <span>
               Request akan ditutup{" "}
               <span className="font-mono tabular-nums text-[var(--accent)]">
                 {formatRemaining(REQUEST_CLOSE_AT - now)}
               </span>
               , untuk dilakukan sortir dan persetujuan.
-            </>
+            </span>
           )}
         </p>
       </div>
