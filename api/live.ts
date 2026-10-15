@@ -97,6 +97,7 @@ type ContentPayload = {
   { slug: "naplive", origin: "https://naplive.vtube-info.xyz" },
   { slug: "zeyayaya", origin: "https://zeyayaya.vtube-info.xyz" },
   { slug: "gepigepeng", origin: "https://gepigepeng.vtube-info.xyz" },
+  { slug: "arushi-caelis", origin: "https://arushi-caelis.vtube-info.xyz" },
 ];
 
 /**

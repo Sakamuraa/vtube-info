@@ -363,6 +363,42 @@ export const creators: Creator[] = [
     ],
     tags: ["#geppeng"],
   },
+  {
+    slug: "arushi-caelis",
+    name: "Arushi Caelis",
+    /*
+     * Her channel description, trimmed: "Hanya anak yang kabur dari habitatnya".
+     * That one line is the whole published self-description -- no credits, no
+     * email, no craft label -- so the character clause leads both here and in
+     * the blurb, the way "suka Yapping" does on the row above.
+     */
+    role: "Anak yang kabur dari habitatnya",
+    /*
+     * No "Live 2D": her description is one line about running from her habitat
+     * and mentions no rig, and X answered an anonymous request for her bio with
+     * 402, so nothing readable says how the character is animated. "ID" is the
+     * language she writes in; "Stream & media share" is what her feed titles
+     * call the work -- #Donathon streams and #mediashareon, plus uploads.
+     */
+    format: "ID VTuber · Stream & media share",
+    /*
+     * First clause is her channel description's own line, verbatim. The rest is
+     * her feed and her channel's JSON-LD sameAs block: #Donathon and
+     * mediashareon as she titles them, X for updates, Trakteer as the donation
+     * row (sameAs declares two tip jars; Trakteer is the one this index's rows
+     * point at). No kredit and no email, because she publishes neither.
+     */
+    blurb:
+      "Hanya anak yang kabur dari habitatnya. Stream #Donathon dan mediashareon di YouTube, update di X, dukungan di Trakteer.",
+    href: "https://arushi-caelis.vtube-info.xyz",
+    avatar: "https://arushi-caelis.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@ArushiCaelis" },
+      { label: "X", href: "https://x.com/ArushiCaelis" },
+      { label: "Trakteer", href: "https://trakteer.id/ArushiCaelis" },
+    ],
+    tags: ["#Donathon", "#mediashareon"],
+  },
 ];
 
 /**

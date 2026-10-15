@@ -34,6 +34,7 @@ const SLUGS = new Set([
   "naplive",
   "zeyayaya",
   "gepigepeng",
+  "arushi-caelis",
 ]);
 
 function cors(res: Res, origin: string | undefined) {
