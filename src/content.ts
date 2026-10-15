@@ -364,7 +364,7 @@ export const creators: Creator[] = [
     tags: ["#geppeng"],
   },
   {
-    slug: "arushi-caelis",
+    slug: "arushicaelis",
     name: "Arushi Caelis",
     /*
      * Her channel description, trimmed: "Hanya anak yang kabur dari habitatnya".
@@ -390,8 +390,8 @@ export const creators: Creator[] = [
      */
     blurb:
       "Hanya anak yang kabur dari habitatnya. Stream #Donathon dan mediashareon di YouTube, update di X, dukungan di Trakteer.",
-    href: "https://arushi-caelis.vtube-info.xyz",
-    avatar: "https://arushi-caelis.vtube-info.xyz/og-image.png",
+    href: "https://arushicaelis.vtube-info.xyz",
+    avatar: "https://arushicaelis.vtube-info.xyz/og-image.png",
     channels: [
       { label: "YouTube", href: "https://www.youtube.com/@ArushiCaelis" },
       { label: "X", href: "https://x.com/ArushiCaelis" },
