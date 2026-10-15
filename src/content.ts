@@ -368,28 +368,31 @@ export const creators: Creator[] = [
     name: "Arushi Caelis",
     /*
      * Her channel description, trimmed: "Hanya anak yang kabur dari habitatnya".
-     * That one line is the whole published self-description -- no credits, no
-     * email, no craft label -- so the character clause leads both here and in
-     * the blurb, the way "suka Yapping" does on the row above.
+     * That one line is the whole channel description -- no email, no craft
+     * label; her X bio carries the character credits and the four tagged uses,
+     * but the character clause still leads, the way "suka Yapping" does on the
+     * row above.
      */
     role: "Anak yang kabur dari habitatnya",
     /*
      * No "Live 2D": her description is one line about running from her habitat
-     * and mentions no rig, and X answered an anonymous request for her bio with
-     * 402, so nothing readable says how the character is animated. "ID" is the
-     * language she writes in; "Stream & media share" is what her feed titles
-     * call the work -- #Donathon streams and #mediashareon, plus uploads.
+     * and mentions no rig; her X bio credits a rigger ("Mastah (Rigg):
+     * @siauwadhie") but never says which kind, and anonymous reads of x.com
+     * answer 402 so the bio text is Sam's relay. "ID" is the language she
+     * writes in; "Stream & media share" is what her feed titles call the work
+     * -- #Donathon streams and #mediashareon, plus uploads.
      */
     format: "ID VTuber · Stream & media share",
     /*
      * First clause is her channel description's own line, verbatim. The rest is
-     * her feed and her channel's JSON-LD sameAs block: #Donathon and
-     * mediashareon as she titles them, X for updates, Trakteer as the donation
-     * row (sameAs declares two tip jars; Trakteer is the one this index's rows
-     * point at). No kredit and no email, because she publishes neither.
+     * her X bio's own labels (Art #GambArushi, Clip #ArushiClip) and her feed;
+     * Trakteer is the donation row from the channel's sameAs block (two tip
+     * jars are declared; Trakteer is the one this index's rows point at).
+     * Character credits (Illust @Mashuako1, Rigg @siauwadhie) live on the fan
+     * site and are left off this one line, same as the rest of the family.
      */
     blurb:
-      "Hanya anak yang kabur dari habitatnya. Stream #Donathon dan mediashareon di YouTube, update di X, dukungan di Trakteer.",
+      "Hanya anak yang kabur dari habitatnya. Stream di YouTube, art di X lewat #GambArushi, clip di #ArushiClip, dukungan di Trakteer.",
     href: "https://arushicaelis.vtube-info.xyz",
     avatar: "https://arushicaelis.vtube-info.xyz/og-image.png",
     channels: [
@@ -397,7 +400,7 @@ export const creators: Creator[] = [
       { label: "X", href: "https://x.com/ArushiCaelis" },
       { label: "Trakteer", href: "https://trakteer.id/ArushiCaelis" },
     ],
-    tags: ["#Donathon", "#mediashareon"],
+    tags: ["#ArushiCaelis", "#GambArushi", "#ArushiClip", "#ArushiMeme"],
   },
 ];
 
