@@ -402,6 +402,39 @@ export const creators: Creator[] = [
     ],
     tags: ["#ArushiCaelis", "#GambArushi", "#ArushiClip", "#ArushiMeme"],
   },
+  {
+    slug: "mikkiru",
+    name: "Mikkiru",
+    /*
+     * Her own words, trimmed from the channel description open: "Its
+     * Mikki-Mikki desu! 💫 Hello! I'm Mikkiru, a Vsinger & VTuber with Low
+     * Vision." The craft clause leads because that is how she introduces
+     * herself; "low vision" stays because she states it.
+     */
+    role: "Vsinger with Low Vision",
+    /*
+     * "ID/EN" is her published language pair (description + X bio). "Cover &
+     * stream" is what her feed titles call the work: 【 Cover 】 uploads plus
+     * MINGOPI / TALK2MI / MIRADIO streams.
+     */
+    format: "ID/EN Vsinger · Cover & stream",
+    /*
+     * Opening line of her channel description, verbatim. The rest is the one
+     * fan-art tag her X bio declares (#Mikkrayon) and the donation row from
+     * her channel's sameAs block. Character credit (Mama @DaonLeafiona) lives
+     * on the fan site and is left off this one line, same as the family.
+     */
+    blurb:
+      "Its Mikki-Mikki desu! Vsinger & VTuber with Low Vision. Cover dan stream di YouTube, art di X lewat #Mikkrayon, dukungan di Trakteer.",
+    href: "https://mikkiru.vtube-info.xyz",
+    avatar: "https://mikkiru.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@MikkiruVtuber" },
+      { label: "X", href: "https://x.com/MikkiruVT" },
+      { label: "Trakteer", href: "https://trakteer.id/mikkiru" },
+    ],
+    tags: ["#Mikkrayon"],
+  },
 ];
 
 /**

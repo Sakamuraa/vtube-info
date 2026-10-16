@@ -98,6 +98,7 @@ type ContentPayload = {
   { slug: "zeyayaya", origin: "https://zeyayaya.vtube-info.xyz" },
   { slug: "gepigepeng", origin: "https://gepigepeng.vtube-info.xyz" },
   { slug: "arushicaelis", origin: "https://arushicaelis.vtube-info.xyz" },
+  { slug: "mikkiru", origin: "https://mikkiru.vtube-info.xyz" },
 ];
 
 /**

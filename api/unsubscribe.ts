@@ -30,6 +30,7 @@ const SLUGS = new Set([
   "zeyayaya",
   "gepigepeng",
   "arushicaelis",
+  "mikkiru",
 ]);
 
 function cors(res: Res, origin: string | undefined) {
