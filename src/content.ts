@@ -435,6 +435,37 @@ export const creators: Creator[] = [
     ],
     tags: ["#Mikkrayon"],
   },
+  {
+    slug: "amyllis",
+    name: "Amyllis",
+    /*
+     * Her X bio's own tagline: "Most Extraordinary Ordinary Witch
+     * (M.E.O.W.)". The craft clause leads; the witch identity stays because
+     * she states it.
+     */
+    role: "Most Extraordinary Ordinary Witch",
+    /*
+     * "ID" is her published language (Indonesian channel description).
+     * "Cover & stream" is what her feed titles call the work: covers
+     * (Shoujo Rei, Fukai Mori, Moon Halo) plus streaming.
+     */
+    format: "ID VTuber · Cover & stream",
+    /*
+     * Opening line of her channel description, verbatim. The rest is the
+     * fan-art tag her brief declares (#Artmyllis) and her witch tagline.
+     * Character credits (four roles) live on the fan site and are left off
+     * this one line, same as the family.
+     */
+    blurb:
+      "Eyyo wassup baby gurl~ Most Extraordinary Ordinary Witch. Cover dan stream di YouTube, art di X lewat #Artmyllis.",
+    href: "https://amyllis.vtube-info.xyz",
+    avatar: "https://amyllis.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@amyllis" },
+      { label: "X", href: "https://x.com/amyllis_" },
+    ],
+    tags: ["#Amyllis", "#Artmyllis", "#Amyllive", "#AmyClips", "#VitAMYns"],
+  },
 ];
 
 /**
