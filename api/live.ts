@@ -100,6 +100,7 @@ type ContentPayload = {
   { slug: "arushicaelis", origin: "https://arushicaelis.vtube-info.xyz" },
   { slug: "mikkiru", origin: "https://mikkiru.vtube-info.xyz" },
   { slug: "amyllis", origin: "https://amyllis.vtube-info.xyz" },
+  { slug: "hessaelainore", origin: "https://hessaelainore.vtube-info.xyz" },
 ];
 
 /**

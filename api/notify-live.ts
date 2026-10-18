@@ -52,6 +52,7 @@ const SLUGS = [
   "arushicaelis",
   "mikkiru",
   "amyllis",
+  "hessaelainore",
 ] as const;
 
 /** Display names for the notification title; api/live sends slugs, not names. */
@@ -69,6 +70,7 @@ const NAMES: Record<string, string> = {
   "arushicaelis": "Arushi Caelis",
   mikkiru: "Mikkiru",
   amyllis: "Amyllis",
+  hessaelainore: "Hessa Elainore",
 };
 
 const PORTAL = "https://vtube-info.xyz";

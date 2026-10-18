@@ -466,6 +466,37 @@ export const creators: Creator[] = [
     ],
     tags: ["#Amyllis", "#Artmyllis", "#Amyllive", "#AmyClips", "#VitAMYns"],
   },
+  {
+    slug: "hessaelainore",
+    name: "Hessa Elainore",
+    /*
+     * Her own words from the channel description: "Queen Snake". The craft
+     * clause leads; the snake identity stays because she states it.
+     */
+    role: "Queen Snake 🐍",
+    /*
+     * "ID" is her published language (Indonesian channel description).
+     * "Game & stream" is what her feed titles call the work: GTA V RP,
+     * Roblox, House Flipper, handcam, plus covers.
+     */
+    format: "ID VTuber · Game & stream",
+    /*
+     * Opening of her channel description, verbatim (the stylised Queen
+     * Snake line). The rest is the art tag her brief declares (#Hessart)
+     * and her Yorukaze group. Character credits (Mama/Papa) live on the
+     * fan site and are left off this one line, same as the family.
+     */
+    blurb:
+      "զųɛɛŋ ʂŋąƙɛ 🐍 Hessa Elainore Ch.【Yorukaze】. Game dan stream di YouTube, art di X lewat #Hessart.",
+    href: "https://hessaelainore.vtube-info.xyz",
+    avatar: "https://hessaelainore.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@Hessaelainore" },
+      { label: "X", href: "https://x.com/hessaelainore" },
+      { label: "Yorukaze", href: "https://x.com/YkzProduction" },
+    ],
+    tags: ["#HessaElainore", "#Ellive", "#Hessart", "#Hehaheha", "#Elcord", "#Hessangh"],
+  },
 ];
 
 /**
