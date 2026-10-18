@@ -497,6 +497,38 @@ export const creators: Creator[] = [
     ],
     tags: ["#HessaElainore", "#Ellive", "#Hessart", "#Hehaheha", "#Elcord", "#Hessangh"],
   },
+  {
+    slug: "meidyanira",
+    name: "mei dyanira",
+    /*
+     * Her own word from the channel description: "vangogh". The craft
+     * clause leads; the self-description stays because she writes it.
+     */
+    role: "vangogh",
+    /*
+     * "ID" is her published language (Indonesian channel description, hl=id
+     * channel). "Game & stream" is what her feed titles call the work: game
+     * streams (proplayer, belajar misoin), collabs (Machine Party), plus a
+     * cover.
+     */
+    format: "ID VTuber · Game & stream",
+    /*
+     * Opening of her channel description, verbatim (the emoji, "vangogh",
+     * "archived at 2am" line). The rest says where the work lives: streams
+     * on YouTube, support on Trakteer -- both from the channel's own
+     * sameAs. No art tag in her brief, so none is claimed here.
+     */
+    blurb:
+      "🩷🗡️ vangogh archived at 2am 𐔌՞. .՞𐦯 ᶻ 𝗓 𐰁 .ᐟ. Game dan stream di YouTube, dukungan di Trakteer.",
+    href: "https://meidyanira.vtube-info.xyz",
+    avatar: "https://meidyanira.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@mysleepfiles" },
+      { label: "X", href: "https://x.com/sle3pf1les" },
+      { label: "Trakteer", href: "https://trakteer.id/meidyanira" },
+    ],
+    tags: ["#MeiDyanira", "#MeiDyaLIVE"],
+  },
 ];
 
 /**
