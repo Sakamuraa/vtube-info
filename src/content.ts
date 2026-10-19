@@ -529,6 +529,39 @@ export const creators: Creator[] = [
     ],
     tags: ["#MeiDyanira", "#MeiDyaLIVE"],
   },
+  {
+    slug: "selenaamaris",
+    name: "Selena AmariS",
+    /*
+     * Her own self-description from the channel and X bios: an alien
+     *Vsinger from another universe. The character leads; the craft
+     * (singing / karaoke) sits in the format line.
+     */
+    role: "Alien Vsinger",
+    /*
+     * "ID" is her published language (Indonesian channel description, hl=id
+     * channel). "Sing & karaoke" is what her feed titles call the work:
+     * KARAOKE streams, COVER uploads, cosplay collabs.
+     */
+    format: "ID VTuber · Sing & karaoke",
+    /*
+     * Opening of her channel description, verbatim (the alien line, the
+     * "out-of-the-world Vsinger" self-intro). The rest says where the work
+     * lives: streams on YouTube, art on X under her own tag #AmariSlay --
+     * both from the channel's own published links.
+     */
+    blurb:
+      "Alien dari universe lain yang datang bernyanyi untuk mu! Stream dan cover di #AmariSpace_Live, art di #AmariSlay.",
+    href: "https://selenaamaris.vtube-info.xyz",
+    avatar: "https://selenaamaris.vtube-info.xyz/og-image.png",
+    channels: [
+      { label: "YouTube", href: "https://www.youtube.com/@selenaamaris" },
+      { label: "X", href: "https://x.com/selenaamariz" },
+      { label: "Karaoke", href: "https://www.youtube.com/@selensing" },
+      { label: "Trakteer", href: "https://trakteer.id/selena_amaris/gift" },
+    ],
+    tags: ["#SelenaAmariS", "#AmariSpace_Live", "#AmariSing", "#AmariSlay", "#Selenauwr", "#AmariSmoment"],
+  },
 ];
 
 /**
